@@ -1,0 +1,45 @@
+/* 
+ça marche pas !!!! car il n'y a pas de hash définit pour POINT2D
+De PLUS, MODIFIer cela en paire de double n'arrange pas le probleme. 
+les erreurs d'arrondis peuvent causer des fausses erreurs
+*/
+
+double Instance::checker(const Solution& sol) const {
+    
+    int size = sol.size(); 
+    if(size != C) return numeric_limits<double>::infinity(); // irréalisable
+
+    /* 
+    cette unordered_map va contenir les coordonnées de chaque entrepot
+    comme clé, et a chacun sera associé une paire {capacité consommée, cap max}.
+    */
+    unordered_map<Point2D,pair<double,double>> um; 
+    
+    for(size_t i = 0; i < loc_f.size(); ++i) {
+        um.insert( { loc_f[i] , {0,uf[i]} } ); 
+    }
+    
+    /* 
+    Puis, parcours de la solution. A chaque entrepot associé au client, 
+    on incrémente la cap conso. et on comptabilise sa distance dans l'obj
+    */
+    double obj = 0; 
+    for(size_t i = 0; i < sol.size(); ++i) {
+
+        // ajout & vérif capacité 
+        um[{sol[i].x, sol[i].y}].first += dc[i]; 
+        if(um[{sol[i].x, sol[i].y}].first > um[{sol[i].x, sol[i].y}].second) {
+            return numeric_limits<double>::infinity(); // irréalisable
+        }
+
+        // ajout obj 
+        double x, y, dist; 
+        x = pow(sol[i].x - loc_client[i].x, 2);
+        y = pow(sol[i].y - loc_client[i].y, 2); 
+        dist = pow(x+y, 0.5); 
+
+        obj += dist; 
+    }
+
+    return obj; 
+}
