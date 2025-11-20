@@ -7,6 +7,7 @@ struct Point2D {
     double x, y;
 };
 
+// test 
 int main(int argc, char **argv)
 {
     GRBEnv env(true);
