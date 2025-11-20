@@ -113,11 +113,19 @@ void solve(const Instance& inst) {
         for(int i = 0; i < inst.C; ++i) {
             for(int j = 0; j < inst.F; ++j) {
                 if (x[i][j].get(GRB_DoubleAttr_X)) {
-                    sol[i] = loc_f[j]; 
+                    sol[i] = inst.loc_f[j]; 
                 }
             }
         }
         cout << sol; 
+
+        // verif sol 
+        
+        double val;
+        val = inst.checker(sol); 
+        cout << val; 
+        inst.dessine_sol(sol); 
+
 
     } else {
         cerr << "PROBLEME STATUS = " << status << endl;
