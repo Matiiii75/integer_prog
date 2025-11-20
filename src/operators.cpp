@@ -186,50 +186,49 @@ istream& operator>>(istream& in, Solution& sol) {
 }
 
 
+// int main(int argc, char* argv[]) {
 
-int main(int argc, char* argv[]) {
+//     // Instance inst; 
 
-    // Instance inst; 
+//     // ifstream file(argv[1]); 
+//     // if (file) {
+//     //     file >> inst; 
+//     // }
 
-    // ifstream file(argv[1]); 
-    // if (file) {
-    //     file >> inst; 
-    // }
+//     // cout << inst; 
+//     /*
+//     Solution sol; 
+//     ifstream file(argv[1]); 
 
-    // cout << inst; 
-    /*
-    Solution sol; 
-    ifstream file(argv[1]); 
+//     if(file.is_open()) {
+//         file >> sol; 
+//     }
 
-    if(file.is_open()) {
-        file >> sol; 
-    }
+//     cout << sol; 
+//     */
 
-    cout << sol; 
-    */
+//     Instance inst; 
+//     ifstream file(argv[1]); 
+//     if(file.is_open()) {
+//         file >> inst; 
+//     }
+//     cout << "affichage inst :" << endl;
+//     cout << inst; 
+//     cout << "dessin en cours" << endl;
+//     inst.dessine_inst(); 
 
-    Instance inst; 
-    ifstream file(argv[1]); 
-    if(file.is_open()) {
-        file >> inst; 
-    }
-    cout << "affichage inst :" << endl;
-    cout << inst; 
-    cout << "dessin en cours" << endl;
-    inst.dessine_inst(); 
+//     Solution sol; 
+//     ifstream file2(argv[2]); 
+//     if(file2.is_open()) {
+//         file2 >> sol; 
+//     }
 
-    Solution sol; 
-    ifstream file2(argv[2]); 
-    if(file2.is_open()) {
-        file2 >> sol; 
-    }
+//     inst.dessine_sol(sol); 
 
-    inst.dessine_sol(sol); 
+//     double obj_value; 
+//     obj_value = inst.checker(sol); 
 
-    double obj_value; 
-    obj_value = inst.checker(sol); 
+//     cout << "obj_value :" << obj_value << endl;
 
-    cout << "obj_value :" << obj_value << endl;
-
-    return 0; 
-}
+//     return 0; 
+//}

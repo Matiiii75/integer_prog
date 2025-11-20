@@ -31,11 +31,25 @@ if(GUROBI_FOUND)
   message(STATUS "Gurobi found")
   include_directories(${GUROBI_INCLUDE_DIRS}) 
 
+  include_directories(${PROJECT_SOURCE_DIR}/src) # pour trouver des includes d'autres fichiers 
+
   add_executable(solver.exe src/solver.cpp)
   target_link_libraries(solver.exe optimized ${GUROBI_CXX_LIBRARY}
                           debug ${GUROBI_CXX_DEBUG_LIBRARY})
   target_link_libraries(solver.exe ${GUROBI_LIBRARY})
   target_compile_definitions(solver.exe PRIVATE USE_GUROBI)
+
+  # pour adapter a dautre fichiers cpp
+  
+  add_executable(modele_compact.exe src/modele_compact.cpp src/operators.cpp)
+  
+  target_link_libraries(modele_compact.exe optimized ${GUROBI_CXX_LIBRARY}
+                          debug ${GUROBI_CXX_DEBUG_LIBRARY})
+  target_link_libraries(modele_compact.exe ${GUROBI_LIBRARY})
+  target_compile_definitions(modele_compact.exe PRIVATE USE_GUROBI)
+
+  # jusque ici
+  # "make nom_fichier.exe" pour compiler le fichier que je veux  
 else()
   message(STATUS "Gurobi not found")
 endif()
