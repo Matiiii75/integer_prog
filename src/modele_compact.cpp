@@ -86,6 +86,18 @@ void solve(const Instance& inst) {
             }
         }
 
+        // récupérage de la solution : 
+
+        Solution sol(inst.C); 
+        for(int i = 0; i < inst.C; ++i) {
+            for(int j = 0; j < inst.F; ++j) {
+                if (x[i][j].get(GRB_DoubleAttr_X)) {
+                    sol[i] = loc_f[j]; 
+                }
+            }
+        }
+        cout << sol; 
+
     } else {
         cerr << "PROBLEME STATUS = " << status << endl;
     }
