@@ -1,0 +1,5 @@
+# Ignorer tous les fichiers objets (.o) générés par la compilation
+*.o
+
+# Ignorer le dossier complet des instances, quel que soit son contenu
+instances/
