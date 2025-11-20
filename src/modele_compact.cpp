@@ -15,8 +15,9 @@ void solve(const Instance& inst) {
 
     // déclaration des variables
 
-    vector<vector<GRBVar>> x(inst.C,vector<GRBVar>(inst.F)); 
+    // x
 
+    vector<vector<GRBVar>> x(inst.C,vector<GRBVar>(inst.F)); 
     for(int i = 0; i < inst.C; ++i) {
         for(int j = 0; j < inst.F; ++j) {
 
@@ -25,6 +26,18 @@ void solve(const Instance& inst) {
             x[i][j] = model.addVar(0.0, 1.0,0.0, GRB_BINARY, ss.str()); 
 
         }
+    }
+
+    // y 
+
+    vector<GRBVar> y(inst.F); 
+
+    for(int j = 0; j < inst.F; ++j) {
+
+        stringstream ss2;
+        ss2 << "y" << j; 
+        y[j] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, ss2.str()); 
+
     }
 
     // objectif 
@@ -59,8 +72,16 @@ void solve(const Instance& inst) {
         for(int i = 0; i < inst.C; ++i) {
             c2 += x[i][j]*inst.dc[i]; 
         }
-        model.addConstr(c2 <= inst.uf[j]); 
+        model.addConstr(c2 <= inst.uf[j]*y[j]); 
     }
+
+    // p entrepots ouverts 
+
+    GRBLinExpr c3 = 0; 
+    for(int j = 0; j < inst.F; ++j) {
+        c3 += y[j]; 
+    }
+    model.addConstr(c3 == inst.p); 
 
 
     /* CONFIGURATIONS DES RESULTATS */
