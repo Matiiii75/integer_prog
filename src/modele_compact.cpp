@@ -120,7 +120,7 @@ void solve(const Instance& inst) {
         cout << sol; 
 
         // verif sol 
-        
+
         // double val;
         // val = inst.checker(sol); décommenter pour checker 
         

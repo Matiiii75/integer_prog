@@ -160,7 +160,7 @@ istream& operator>>(istream &in, Instance& inst) {
 ostream& operator<<(ostream& out, const Solution& sol) {
 
     for(size_t i = 0; i < sol.size(); ++i) {
-        out << i << " : (" << sol[i].x << "," << sol[i].y << ")"; 
+        out << sol[i].x << " " << sol[i].y; 
         out << endl;
     }
 
