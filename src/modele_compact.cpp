@@ -121,10 +121,17 @@ void solve(const Instance& inst) {
 
         // verif sol 
         
-        double val;
-        val = inst.checker(sol); 
-        cout << val; 
-        inst.dessine_sol(sol); 
+        // double val;
+        // val = inst.checker(sol); décommenter pour checker 
+        
+        // écris la solution dans un fichier 
+
+        ofstream ecrit("../solutions/solution.sol"); 
+        ecrit << sol; 
+        ecrit.close(); 
+        
+
+        inst.dessine_sol(sol);  // dessine l'instance en svg dans le dossier dessins
 
 
     } else {
