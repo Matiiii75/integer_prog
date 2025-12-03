@@ -49,6 +49,11 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
     model.setObjective(obj, GRB_MINIMIZE); 
 
 
+    // pour stocker les contraintes afin de pouvoir accéder aux duales + tard, 
+    // je créer un array
+
+    GRBConstr* contraintes = new GRBConstr[inst.C + 2]; 
+
     // contraintes : tout client est assigné exactement une fois
 
     for(int i = 0; i < inst.C; ++i) {
@@ -58,7 +63,7 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
                 c1 += L[p][inst.F-1+i]*L[p][j]*lambda[p]; 
             }
         }
-        model.addConstr(c1 == 1); 
+        contraintes[i] = model.addConstr(c1 == 1); 
     }
 
 
@@ -70,7 +75,7 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
             c2 += L[p][j]*lambda[p]; 
         }
     }
-    model.addConstr(c2 == inst.p); // est ce quil faut mettre <= du coup ??????????????????
+    contraintes[inst.C] = model.addConstr(c2 == inst.p); // est ce quil faut mettre <= du coup ??????????????????
 
 
     // somme lambda == 1 ------> peut etre inutile par redondance avec c1 ??????????
@@ -79,7 +84,7 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
     for(int p = 0; p < SL; ++p) {
         c3 += lambda[p]; 
     }
-    model.addConstr(c3 == 1);
+    contraintes[inst.C+1] = model.addConstr(c3 == 1);
 
 
     /* CONFIGURATIONS DES RESULTATS */
@@ -101,8 +106,9 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
         // pas sur de ce qui suit : 
         vector<double> duales; 
 
-        // rajouter du code pour récupérer les duales de chaque contrainte
-        
+        for(int i = 0; i < inst.C+2; ++i) {
+            duales.push_back(contraintes[i].get(GRB_DoubleAttr_Pi)); 
+        }
     }
 
     // renvoie les duales 
