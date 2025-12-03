@@ -1,1 +1,0 @@
-/usr/bin/c++  -O2 -march=native -O3 -DNDEBUG CMakeFiles/solver.exe.dir/src/solver.cpp.o -o solver.exe   -L/opt/local/stow/gurobi1203/linux64/lib  -Wl,-rpath,/opt/local/stow/gurobi1203/linux64/lib /opt/local/stow/gurobi1203/linux64/lib/libgurobi_c++.a -lgurobi120

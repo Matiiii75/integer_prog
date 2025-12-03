@@ -117,37 +117,48 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named solver.exe
+# Target rules for targets named projet_ip
 
 # Build rule for target.
-solver.exe: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 solver.exe
-.PHONY : solver.exe
+projet_ip: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 projet_ip
+.PHONY : projet_ip
 
 # fast build rule for target.
-solver.exe/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/solver.exe.dir/build.make CMakeFiles/solver.exe.dir/build
-.PHONY : solver.exe/fast
+projet_ip/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/build
+.PHONY : projet_ip/fast
 
-#=============================================================================
-# Target rules for targets named modele_compact.exe
+src/master_and_pricing.o: src/master_and_pricing.cpp.o
+.PHONY : src/master_and_pricing.o
 
-# Build rule for target.
-modele_compact.exe: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 modele_compact.exe
-.PHONY : modele_compact.exe
+# target to build an object file
+src/master_and_pricing.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/master_and_pricing.cpp.o
+.PHONY : src/master_and_pricing.cpp.o
 
-# fast build rule for target.
-modele_compact.exe/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/modele_compact.exe.dir/build.make CMakeFiles/modele_compact.exe.dir/build
-.PHONY : modele_compact.exe/fast
+src/master_and_pricing.i: src/master_and_pricing.cpp.i
+.PHONY : src/master_and_pricing.i
+
+# target to preprocess a source file
+src/master_and_pricing.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/master_and_pricing.cpp.i
+.PHONY : src/master_and_pricing.cpp.i
+
+src/master_and_pricing.s: src/master_and_pricing.cpp.s
+.PHONY : src/master_and_pricing.s
+
+# target to generate assembly for a file
+src/master_and_pricing.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/master_and_pricing.cpp.s
+.PHONY : src/master_and_pricing.cpp.s
 
 src/modele_compact.o: src/modele_compact.cpp.o
 .PHONY : src/modele_compact.o
 
 # target to build an object file
 src/modele_compact.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/modele_compact.exe.dir/build.make CMakeFiles/modele_compact.exe.dir/src/modele_compact.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/modele_compact.cpp.o
 .PHONY : src/modele_compact.cpp.o
 
 src/modele_compact.i: src/modele_compact.cpp.i
@@ -155,7 +166,7 @@ src/modele_compact.i: src/modele_compact.cpp.i
 
 # target to preprocess a source file
 src/modele_compact.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/modele_compact.exe.dir/build.make CMakeFiles/modele_compact.exe.dir/src/modele_compact.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/modele_compact.cpp.i
 .PHONY : src/modele_compact.cpp.i
 
 src/modele_compact.s: src/modele_compact.cpp.s
@@ -163,7 +174,7 @@ src/modele_compact.s: src/modele_compact.cpp.s
 
 # target to generate assembly for a file
 src/modele_compact.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/modele_compact.exe.dir/build.make CMakeFiles/modele_compact.exe.dir/src/modele_compact.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/modele_compact.cpp.s
 .PHONY : src/modele_compact.cpp.s
 
 src/operators.o: src/operators.cpp.o
@@ -171,7 +182,7 @@ src/operators.o: src/operators.cpp.o
 
 # target to build an object file
 src/operators.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/modele_compact.exe.dir/build.make CMakeFiles/modele_compact.exe.dir/src/operators.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/operators.cpp.o
 .PHONY : src/operators.cpp.o
 
 src/operators.i: src/operators.cpp.i
@@ -179,7 +190,7 @@ src/operators.i: src/operators.cpp.i
 
 # target to preprocess a source file
 src/operators.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/modele_compact.exe.dir/build.make CMakeFiles/modele_compact.exe.dir/src/operators.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/operators.cpp.i
 .PHONY : src/operators.cpp.i
 
 src/operators.s: src/operators.cpp.s
@@ -187,7 +198,7 @@ src/operators.s: src/operators.cpp.s
 
 # target to generate assembly for a file
 src/operators.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/modele_compact.exe.dir/build.make CMakeFiles/modele_compact.exe.dir/src/operators.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/operators.cpp.s
 .PHONY : src/operators.cpp.s
 
 src/solver.o: src/solver.cpp.o
@@ -195,7 +206,7 @@ src/solver.o: src/solver.cpp.o
 
 # target to build an object file
 src/solver.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/solver.exe.dir/build.make CMakeFiles/solver.exe.dir/src/solver.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/solver.cpp.o
 .PHONY : src/solver.cpp.o
 
 src/solver.i: src/solver.cpp.i
@@ -203,7 +214,7 @@ src/solver.i: src/solver.cpp.i
 
 # target to preprocess a source file
 src/solver.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/solver.exe.dir/build.make CMakeFiles/solver.exe.dir/src/solver.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/solver.cpp.i
 .PHONY : src/solver.cpp.i
 
 src/solver.s: src/solver.cpp.s
@@ -211,7 +222,7 @@ src/solver.s: src/solver.cpp.s
 
 # target to generate assembly for a file
 src/solver.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/solver.exe.dir/build.make CMakeFiles/solver.exe.dir/src/solver.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/projet_ip.dir/build.make CMakeFiles/projet_ip.dir/src/solver.cpp.s
 .PHONY : src/solver.cpp.s
 
 # Help Target
@@ -222,8 +233,10 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... modele_compact.exe"
-	@echo "... solver.exe"
+	@echo "... projet_ip"
+	@echo "... src/master_and_pricing.o"
+	@echo "... src/master_and_pricing.i"
+	@echo "... src/master_and_pricing.s"
 	@echo "... src/modele_compact.o"
 	@echo "... src/modele_compact.i"
 	@echo "... src/modele_compact.s"

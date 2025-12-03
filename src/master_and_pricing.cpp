@@ -24,7 +24,7 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
     int SL = L.size(); 
 
     vector<GRBVar> lambda(SL); 
-    for(int i = 0; i < SL, ++i) {
+    for(int i = 0; i < SL; ++i) {
 
         stringstream ss; 
         ss << "lambda" << i; 
@@ -70,7 +70,7 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
             c2 += L[p][j]*lambda[p]; 
         }
     }
-    model.addConstr(c2 == p); // est ce quil faut mettre <= du coup ??????????????????
+    model.addConstr(c2 == inst.p); // est ce quil faut mettre <= du coup ??????????????????
 
 
     // somme lambda == 1 ------> peut etre inutile par redondance avec c1 ??????????
@@ -100,10 +100,9 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
         // si la résolution s'est correctement déroulée, on peut extraire les valeurs duales des contraintes 
         // pas sur de ce qui suit : 
         vector<double> duales; 
-        for(GRBConstr contrainte : model.getConstr()) {
-            double val_duale = constr.get(GRB.DoubleAttr.Pi); 
-            duale.push_back(val_duale); 
-        }
+
+        // rajouter du code pour récupérer les duales de chaque contrainte
+        
     }
 
     // renvoie les duales 

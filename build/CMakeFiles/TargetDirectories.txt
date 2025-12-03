@@ -1,4 +1,3 @@
-/autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/CMakeFiles/solver.exe.dir
-/autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/CMakeFiles/modele_compact.exe.dir
+/autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/CMakeFiles/projet_ip.dir
 /autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/CMakeFiles/edit_cache.dir
 /autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/CMakeFiles/rebuild_cache.dir

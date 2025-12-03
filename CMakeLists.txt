@@ -1,55 +1,73 @@
-cmake_minimum_required(VERSION 3.11)
+# L'outil CMake permet de générér automatiquement le fichier Makefile d'un projet.
+cmake_minimum_required(VERSION 3.14)
+project(projet_gopp)
 
-project(hpg C)
-include(FetchContent)
+set(CMAKE_CXX_STANDARD 14)
 
-option(CXX "enable C++ compilation" ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -march=native")
+#------------------- CREATION DES VARIABLES POUR LA BIBLIOTHEQUE GUROBI -----------------------
+message(STATUS "CMAKE_SYSTEM_NAME : ${CMAKE_SYSTEM_NAME}")
 
-if(CXX)
-  enable_language(CXX)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux") # Pour Linux
+    # CORRECTION ICI : Chemin mis à jour vers Gurobi 12.0.3
+    set(GUROBI_ROOT "/opt/local/stow/gurobi1203/linux64") 
+endif()    
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows") # Pour Windows
+    set(GUROBI_ROOT "C:/gurobi952/win64") 
+endif()
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin") # Pour MacOS
+    set(GUROBI_ROOT "/Library/gurobi952/mac64") 
+endif()
+    
+message(STATUS "GUROBI_ROOT : ${GUROBI_ROOT}")
+
+# On créé une variable stockant le dossier où se situent les fichiers en-tête du solveur GUROBI
+set(GUROBI_INCLUDE_DIR "${GUROBI_ROOT}/include")
+message(STATUS "GUROBI_INCLUDE_DIR : ${GUROBI_INCLUDE_DIR}") 
+
+# On créé des variables stockant l'emplacement des biblothèques/librairies du solveur GUROBI
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux") # Pour Linux
+    set(GUROBI_LIBRARY_1 "${GUROBI_ROOT}/lib/libgurobi_c++.a")
+    # CORRECTION ICI : libgurobi91.so remplacé par libgurobi120.so (pour version 12.0)
+    set(GUROBI_LIBRARY_2 "${GUROBI_ROOT}/lib/libgurobi120.so")
 endif()
 
-set(CMAKE_CXX_STANDARD 20)
-
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-endif()
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-
-if(MSVC AND MT)
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
-  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows") # Pour Windows
+    set(GUROBI_LIBRARY_1 "${GUROBI_ROOT}/lib/gurobi95.lib")
+    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        set(GUROBI_LIBRARY_2 "${GUROBI_ROOT}/lib/gurobi_c++mdd2019.lib")
+    else()
+        set(GUROBI_LIBRARY_2 "${GUROBI_ROOT}/lib/gurobi_c++md2019.lib")
+    endif()
 endif()
 
-find_package(GUROBI)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin") # Pour MacOS
+    set(GUROBI_LIBRARY_1 "${GUROBI_ROOT}/lib/libgurobi_c++.a")
+    set(GUROBI_LIBRARY_2 "${GUROBI_ROOT}/lib/libgurobi91.dylib")
+endif()
 
-if(GUROBI_FOUND)
-  message(STATUS "Gurobi found")
-  include_directories(${GUROBI_INCLUDE_DIRS}) 
+set(GUROBI_LIBRARIES ${GUROBI_LIBRARY_1} ${GUROBI_LIBRARY_2})
+message(STATUS "GUROBI_LIBRARIES : ${GUROBI_LIBRARIES}") 
 
-  include_directories(${PROJECT_SOURCE_DIR}/src) # pour trouver des includes d'autres fichiers 
+#------------------- PARTIE PRINCIPALE -----------------------
+# On indique où trouver les définitions des fonctions du solveur GUROBI
+include_directories(${GUROBI_INCLUDE_DIR})
+include_directories(include)
 
-  add_executable(solver.exe src/solver.cpp)
-  target_link_libraries(solver.exe optimized ${GUROBI_CXX_LIBRARY}
-                          debug ${GUROBI_CXX_DEBUG_LIBRARY})
-  target_link_libraries(solver.exe ${GUROBI_LIBRARY})
-  target_compile_definitions(solver.exe PRIVATE USE_GUROBI)
+# Recherche tous les fichiers .cpp dans le dossier src (stocke tout cela dans la variable SRCS)
+file(GLOB_RECURSE SRCS src/*.cpp)
+message(STATUS "SRCS : ${SRCS}") 
 
-  # pour adapter a dautre fichiers cpp
-  
-  add_executable(modele_compact.exe src/modele_compact.cpp src/operators.cpp)
-  
-  target_link_libraries(modele_compact.exe optimized ${GUROBI_CXX_LIBRARY}
-                          debug ${GUROBI_CXX_DEBUG_LIBRARY})
-  target_link_libraries(modele_compact.exe ${GUROBI_LIBRARY})
-  target_compile_definitions(modele_compact.exe PRIVATE USE_GUROBI)
+# On indique que l'on veut un exécutable "projet_gopp" compilé à partir des fichiers stockés dans SRCS
+add_executable(projet_ip ${SRCS})
 
-  # jusque ici
-  # "make nom_fichier.exe" pour compiler le fichier que je veux  
-else()
-  message(STATUS "Gurobi not found")
+# On indique où trouver les biblothèques du solveur GUROBI
+target_link_libraries(projet_ip ${GUROBI_LIBRARIES})
+
+# On ajoute un lien symbolique vers le dossier data
+if (UNIX)  # Pour MacOS et Linux
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/data/ ${CMAKE_CURRENT_BINARY_DIR}/data)
+else()  # Pour Windows
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/data" _dstDir)
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data/" _srcDir)
+    execute_process(COMMAND cmd.exe /c mklink /J "${_dstDir}" "${_srcDir}")
 endif()
