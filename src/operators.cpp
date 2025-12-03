@@ -3,6 +3,8 @@
 using namespace std; 
 using Solution = vector<Point2D>; 
 
+// question 4
+
 double Instance::checker(const Solution& sol) const{
 
     // contiendra les capacite consomme pour chaque entrepot
@@ -40,13 +42,15 @@ double Instance::checker(const Solution& sol) const{
         }
         else { // si pas de correspondance à 1 moment 
             cout << "(" << sol[i].x << "," << sol[i].y << ") not found !" << endl;
-            return numeric_limits<double>::infinity(); 
+            return numeric_limits<double>::infinity(); // renvoie inf 
         }
     }
 
     return obj; 
 }
 
+
+// question 5 visualiseur d'instance 
 
 void Instance::dessine_inst() {
     
@@ -72,6 +76,7 @@ void Instance::dessine_inst() {
 
 }
 
+// question 5 visualiseur de solution
 
 void Instance::dessine_sol(const Solution& sol) const {
 

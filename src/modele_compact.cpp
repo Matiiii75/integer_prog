@@ -2,9 +2,9 @@
 #include <sstream> 
 #include "gurobi_c++.h"
 
-
 using namespace std; 
 
+// Q7 : implémentation du modèle de Q6. 
 
 void solve(const Instance& inst) {
 
@@ -140,7 +140,7 @@ void solve(const Instance& inst) {
 
 }
 
-
+/*
 int main(int argc, char* argv[]) {
 
     Instance inst; 
@@ -154,4 +154,4 @@ int main(int argc, char* argv[]) {
 
     return 0; 
 }
-
+*/
