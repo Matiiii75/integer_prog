@@ -100,11 +100,12 @@ vector<double> solve_master(const Instance& inst, const vector<vector<int>>& L) 
 
     int status = model.get(GRB_IntAttr_Status);
 
+    vector<double> duales; // il faudrait ajouter une sécurité au cas ou on rentre pas dans le if en dessous
+
     if(status == GRB_OPTIMAL || (status == GRB_TIME_LIMIT && model.get(GRB_IntAttr_SolCount)>0)){
 
         // si la résolution s'est correctement déroulée, on peut extraire les valeurs duales des contraintes 
-        // pas sur de ce qui suit : 
-        vector<double> duales; 
+        // pas sur de ce qui suit :  
 
         for(int i = 0; i < inst.C+2; ++i) {
             duales.push_back(contraintes[i].get(GRB_DoubleAttr_Pi)); 
@@ -205,7 +206,7 @@ bool pricing(const Instance& inst, const vector<double>& duales, vector<vector<i
     // récuperation et affichage résultats
 
     int status = model.get(GRB_IntAttr_Status);
-
+    
     if(status == GRB_OPTIMAL || (status == GRB_TIME_LIMIT && model.get(GRB_IntAttr_SolCount)>0))
     {
         
@@ -263,7 +264,7 @@ void boucle_master_pricing(const Instance& inst) {
     while(ajout_colonne) {
 
         duales = solve_master(inst, L); 
-        ajout_colonne = (inst, duales, L); 
+        ajout_colonne = pricing(inst, duales, L); 
 
     }
 
