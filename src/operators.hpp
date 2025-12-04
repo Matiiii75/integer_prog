@@ -38,3 +38,5 @@ ostream& operator<<(ostream& out, const Solution& sol);
 
 istream& operator>>(istream& in, Solution& sol);
 
+double dist(const Instance &inst, int i, int j); 
+

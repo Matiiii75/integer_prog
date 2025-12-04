@@ -191,6 +191,19 @@ istream& operator>>(istream& in, Solution& sol) {
 }
 
 
+// étant donné une instance et un entrepot, cette fonction calcule la distance les séparant 
+
+double dist(const Instance &inst, int i, int j) {
+
+    if(i<0 || i >= inst.C) cout << "erreur dans dist, client impossible" << endl;
+    if(j<0 || i >= inst.F) cout << "erreur dans dist, entrepot impossible" << endl;
+
+    return pow( pow( inst.loc_client[i].x - inst.loc_f[j].x , 2) 
+                + pow(inst.loc_client[i].y - inst.loc_f[j].y , 2), 0.5);
+} 
+
+
+
 // int main(int argc, char* argv[]) {
 
 //     // Instance inst; 
