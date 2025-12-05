@@ -136,6 +136,8 @@ struct modele {
             contraintes += x.back()*inst.dc[i]; 
         }
 
+        pricing_model.addConstr(contraintes <= inst.uf[j]); 
+
         pricing_model.optimize(); 
 
         double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
