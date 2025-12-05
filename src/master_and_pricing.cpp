@@ -34,19 +34,6 @@ struct modele {
     modele(const Instance& inst_) : inst(inst_) {
 
         taille_col = inst.C + inst.F; 
-
-        // ajout d'une colonne initiale où tous les clients sont selectionnés 
-        // cette colonne aura un coefficient >grand pour s'assurer qu'on ne la selectionne 
-        // plus ensuite. 
-
-        /*
-        vector<int> naive_col; 
-        for(int i = 0; i < inst.F; ++i) naive_col.push_back(0); 
-        for(int i = 0; i < inst.C; ++i) naive_col.push_back(1);  
-        */
-
-        GRBVar t; 
-        model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
         
         // environnement 
 
@@ -54,6 +41,13 @@ struct modele {
         env->set(GRB_IntParam_LogToConsole, 0); // désactive les logs
         env->start(); 
         model = new GRBModel(*env); 
+
+        // ajout d'une colonne initiale où tous les clients sont selectionnés 
+        // cette colonne aura un coefficient >grand pour s'assurer qu'on ne la selectionne 
+        // plus ensuite. 
+
+        GRBVar t; 
+        model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
 
         // contrainte pas plus de p entrepot
         max_facility = model->addConstr(0.0, GRB_LESS_EQUAL, inst.p); 
@@ -71,7 +65,7 @@ struct modele {
 
         double val_col = 0; 
         for(int i = 1; i < inst.C+1; ++i) {
-            val_col += colonne[i]*dist(inst, i, colonne[0]); 
+            val_col += colonne[i]*dist(inst, i-1, colonne[0]); 
             // colonne[0] contient l'entrepot ouvert j auxquels sont associés les clients actifs
         }
 
@@ -132,14 +126,14 @@ struct modele {
 
         GRBModel pricing_model(env); 
 
-        vector<GRBLinExpr> contraintes;
+        GRBLinExpr contraintes;
         vector<GRBVar> x; 
 
         vector<double> duales = duales_des_clients(); // récupère les duales
 
         for(int i = 0; i < inst.C; ++i) {
             x.push_back(pricing_model.addVar(0.0, 1.0, dist(inst, i, j) - duales[i], GRB_INTEGER));
-            contraintes[i] += x.back()*inst.dc[i]; 
+            contraintes += x.back()*inst.dc[i]; 
         }
 
         pricing_model.optimize(); 
