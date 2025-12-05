@@ -140,18 +140,18 @@ void solve(const Instance& inst) {
 
 }
 
-/*
-int main(int argc, char* argv[]) {
 
-    Instance inst; 
-    ifstream file(argv[1]); 
-    if(file.is_open()) {
-        file >> inst; 
-    }
-    else cout << "erreur ouverture fichier" << endl;
+// int main(int argc, char* argv[]) {
 
-    solve(inst); 
+//     Instance inst; 
+//     ifstream file(argv[1]); 
+//     if(file.is_open()) {
+//         file >> inst; 
+//     }
+//     else cout << "erreur ouverture fichier" << endl;
 
-    return 0; 
-}
-*/
+//     solve(inst); 
+
+//     return 0; 
+// }
+

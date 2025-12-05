@@ -144,9 +144,9 @@ struct modele {
         pricing_model.optimize(); 
 
         double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
-        cout << "pricingOBJ : " << pricing_obj << endl;
+        cout << "pricing obj : " << pricing_obj - theta() << endl;
         // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
-        if(pricing_obj + theta() >= -1e-6) return {}; 
+        if(pricing_obj - theta() >= -1e-6) return {}; 
 
         // on créer la colonne 
         vector<int> colonne; 
@@ -165,27 +165,16 @@ struct modele {
     void gen_col() {
 
         while(true) {   
-            // debug
-            for(double duale : duales_des_clients()) {
-                cout << duale << " "; 
-            } 
-            cout << "theta : " << theta() << endl;
 
             vector<vector<int>> col_a_ajouter; 
             for(int j = 0; j < inst.F; ++j) {
                 auto col = pricing(j); 
-                if(col.empty()) break;
+                if(col.empty()) continue; // si colonne vide, on l'ajoute pas
                 col_a_ajouter.push_back(col); 
             }
             
+            if(col_a_ajouter.empty()) break; // si on a aucune colonne a ajouter, on quitte 
             for(auto& col : col_a_ajouter) { 
-            
-                /* debug : impression de chaque colonne a ajouter */
-                cout << "("; 
-                for(int i = 0; i < (int)col.size(); ++i) {
-                    cout << col[i] << " ";  
-                } 
-                cout << ")" << endl;
                 ajoute_colonne(col); 
             } 
             optimize(); 
@@ -208,7 +197,6 @@ int main(int argc, char* argv[]) {
     if(file.is_open()) file >> inst; 
     else cerr << "erreur ouverture fichier" << endl;
 
-    cout << "ok main" << endl;
     modele m(inst); 
     m.gen_col();
     
