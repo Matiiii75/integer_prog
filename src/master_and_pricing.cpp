@@ -46,7 +46,7 @@ struct modele {
         */
 
         GRBVar t; 
-        model.addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
+        model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
         
         // environnement 
 
@@ -56,7 +56,7 @@ struct modele {
         model = new GRBModel(*env); 
 
         // contrainte pas plus de p entrepot
-        max_facility = model->addConstr(0.0 <= inst.p); 
+        max_facility = model->addConstr(0.0, GRB_LESS_EQUAL, inst.p); 
 
         // tout client servis 
         for(int i = 0; i < inst.C; ++i) {
@@ -110,7 +110,7 @@ struct modele {
 
         vector<double> duales; 
 
-        for(auto& contrainte : ctr_client) {
+        for(auto& contrainte : tout_client_assigne) {
             duales.push_back(contrainte.get(GRB_DoubleAttr_Pi)); 
         }
 
@@ -127,8 +127,8 @@ struct modele {
         return model->get(GRB_DoubleAttr_ObjVal); 
     }
 
-    // résoud le pricing. Prends en entrée la facility considérée. Renvoie une colonne
-    vector<int> pricing(int facility) {
+    // résoud le pricing. Prends en entrée j : la facility considérée. Renvoie une colonne
+    vector<int> pricing(int j) {
 
         GRBModel pricing_model(env); 
 
@@ -156,7 +156,7 @@ struct modele {
             else colonne.push_back(0); 
         }
 
-        return col; 
+        return colonne; 
     }
 
 
@@ -186,7 +186,7 @@ struct modele {
         delete env; 
         delete model; 
     }
-}
+}; 
 
 
 int main(int argc, char* argv[]) {
