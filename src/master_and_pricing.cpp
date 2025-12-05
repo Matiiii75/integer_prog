@@ -42,20 +42,23 @@ struct modele {
         env->start(); 
         model = new GRBModel(*env); 
 
+        cout << "ok creeation modele builder" << endl;
         // ajout d'une colonne initiale où tous les clients sont selectionnés 
         // cette colonne aura un coefficient >grand pour s'assurer qu'on ne la selectionne 
         // plus ensuite. 
 
-        GRBVar t; 
-        model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
+        GRBVar t = model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
 
+        cout << "ok ajout variable t" << endl;
         // contrainte pas plus de p entrepot
         max_facility = model->addConstr(0.0, GRB_LESS_EQUAL, inst.p); 
 
+        cout << "ok ajout facility cstr" << endl;
         // tout client servis 
         for(int i = 0; i < inst.C; ++i) {
             tout_client_assigne.push_back(model->addConstr(t == 1)); 
         }
+        cout << "ok apres boucle tout client assigne" << endl;
 
         model->optimize(); 
     }
@@ -141,6 +144,7 @@ struct modele {
         pricing_model.optimize(); 
 
         double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
+        cout << "pricingOBJ : " << pricing_obj << endl;
         // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
         if(pricing_obj + theta() >= -1e-6) return {}; 
 
@@ -161,6 +165,11 @@ struct modele {
     void gen_col() {
 
         while(true) {   
+            // debug
+            for(double duale : duales_des_clients()) {
+                cout << duale << " "; 
+            } 
+            cout << "theta : " << theta() << endl;
 
             vector<vector<int>> col_a_ajouter; 
             for(int j = 0; j < inst.F; ++j) {
@@ -168,11 +177,18 @@ struct modele {
                 if(col.empty()) break;
                 col_a_ajouter.push_back(col); 
             }
-
-            for(auto& col : col_a_ajouter) 
+            
+            for(auto& col : col_a_ajouter) { 
+            
+                /* debug : impression de chaque colonne a ajouter */
+                cout << "("; 
+                for(int i = 0; i < (int)col.size(); ++i) {
+                    cout << col[i] << " ";  
+                } 
+                cout << ")" << endl;
                 ajoute_colonne(col); 
+            } 
             optimize(); 
-
         }
     }
 
@@ -192,6 +208,7 @@ int main(int argc, char* argv[]) {
     if(file.is_open()) file >> inst; 
     else cerr << "erreur ouverture fichier" << endl;
 
+    cout << "ok main" << endl;
     modele m(inst); 
     m.gen_col();
     
