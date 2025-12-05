@@ -75,7 +75,7 @@ struct modele {
             // colonne[0] contient l'entrepot ouvert j auxquels sont associés les clients actifs
         }
 
-        return val_opt; 
+        return val_col; 
     }
 
 
@@ -139,7 +139,7 @@ struct modele {
 
         for(int i = 0; i < inst.C; ++i) {
             x.push_back(pricing_model.addVar(0.0, 1.0, dist(inst, i, j) - duales[i], GRB_INTEGER));
-            contraintes += x.back()*inst.dc[i]; 
+            contraintes[i] += x.back()*inst.dc[i]; 
         }
 
         pricing_model.optimize(); 
