@@ -141,6 +141,8 @@ vector<int> modele::pricing(int j) {
 // boucle pour la génération de colonne
 void modele::gen_col() {
 
+    auto start = std::chrono::high_resolution_clock::now(); 
+
     while(true) {   
 
         vector<vector<int>> col_a_ajouter; 
@@ -156,6 +158,10 @@ void modele::gen_col() {
         } 
         optimize(); 
     }
+
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    cout << duration.count() << endl;
 }
 
 
@@ -202,7 +208,7 @@ vector<int> modele::prog_dyn_sac(int j) {
     // il faut calculer les profits; pour chaque objet, ils valent : pi_i - dist(i,j)
     vector<double> duales = duales_des_clients(); 
     for(int i = 0; i < nb_obj; ++i) {
-        profits[i] = dist(inst, i, j) - duales[i]; 
+        profits[i] = -dist(inst, i, j) + duales[i]; 
     }
 
     // tableau prog dyn
@@ -237,7 +243,7 @@ vector<int> modele::prog_dyn_sac(int j) {
 
     vector<int> solution; 
     // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
-    if(tableau[nb_obj][taille_sac].first - theta() < -1e-6) {
+    if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) {
         return reconstruit_solution(tableau, j); 
     } 
     // sinon, pas de vecteur
@@ -247,6 +253,8 @@ vector<int> modele::prog_dyn_sac(int j) {
 
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP() {
+
+    auto start = std::chrono::high_resolution_clock::now(); 
 
     while(true) {   
 
@@ -263,6 +271,11 @@ void modele::gen_col_DP() {
         } 
         optimize(); 
     }
+
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    cout << duration.count() << endl;
+
 }
 
 
@@ -281,8 +294,14 @@ int main(int argc, char* argv[]) {
     if(file.is_open()) file >> inst; 
     else cerr << "erreur ouverture fichier" << endl;
 
-    modele m(inst); 
-    m.gen_col_DP();
+    modele m(inst);
+    char choix = argv[2][0];  
+    if(choix=='1') {
+        m.gen_col_DP();
+    } 
+    if(choix=='0') {
+        m.gen_col(); 
+    }  
     
     cout << "relaxation LP maitre : " << m.obj() << endl;
 

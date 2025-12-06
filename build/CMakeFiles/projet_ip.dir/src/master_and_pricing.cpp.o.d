@@ -176,4 +176,7 @@ CMakeFiles/projet_ip.dir/src/master_and_pricing.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
  /opt/local/stow/gurobi1203/linux64/include/gurobi_c++.h \
  /opt/local/stow/gurobi1203/linux64/include/gurobi_c.h \
- /usr/include/c++/12/sstream /usr/include/c++/12/bits/sstream.tcc
+ /usr/include/c++/12/sstream /usr/include/c++/12/bits/sstream.tcc \
+ /usr/include/c++/12/chrono /usr/include/c++/12/bits/chrono.h \
+ /usr/include/c++/12/ratio /usr/include/c++/12/ctime \
+ /usr/include/c++/12/bits/parse_numbers.h
