@@ -43,7 +43,7 @@ struct modele {
 
     vector<int> prog_dyn_sac(int j); 
 
-    gen_col_DP(); 
+    void gen_col_DP(); 
 
     ~modele();
 
