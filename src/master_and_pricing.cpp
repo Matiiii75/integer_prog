@@ -236,13 +236,36 @@ vector<int> modele::prog_dyn_sac(int j) {
     }
 
     vector<int> solution; 
-    // si l'objectif <= 0 (a epsilon pret) renvoyer la solution reconstruite
+    // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
     if(tableau[nb_obj][taille_sac].first - theta() < -1e-6) {
         return reconstruit_solution(tableau, j); 
     } 
     // sinon, pas de vecteur
     return {};  
 }
+
+
+// fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
+void modele::gen_col_DP() {
+
+    while(true) {   
+
+        vector<vector<int>> col_a_ajouter; 
+        for(int j = 0; j < inst.F; ++j) {
+            auto col = prog_dyn_sac(j); 
+            if(col.empty()) continue; // si colonne vide, on l'ajoute pas
+            col_a_ajouter.push_back(col); 
+        }
+        
+        if(col_a_ajouter.empty()) break; // si on a aucune colonne a ajouter, on quitte 
+        for(auto& col : col_a_ajouter) { 
+            ajoute_colonne(col); 
+        } 
+        optimize(); 
+    }
+}
+
+
 
 // destructeur modele 
 modele::~modele() {
@@ -259,7 +282,7 @@ int main(int argc, char* argv[]) {
     else cerr << "erreur ouverture fichier" << endl;
 
     modele m(inst); 
-    m.gen_col();
+    m.gen_col_DP();
     
     cout << "relaxation LP maitre : " << m.obj() << endl;
 
