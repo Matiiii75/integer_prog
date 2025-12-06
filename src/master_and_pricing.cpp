@@ -124,7 +124,7 @@ vector<int> modele::pricing(int j) {
     double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
     cout << "pricing obj : " << pricing_obj - theta() << endl;
     // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
-    if(pricing_obj - theta() >= -1e-6) return {}; 
+    if(pricing_obj - theta() <= 1e-6) return {}; 
 
     // on créer la colonne 
     vector<int> colonne; 
@@ -159,6 +159,36 @@ void modele::gen_col() {
 }
 
 
+// fonction qui reconstruit la solution trouvée par le programme dynamique 
+vector<int> modele::reconstruit_solution(const vector<vector<pair<double,int>>>& tab, int j) {
+
+    // vecteur binaire contiendra la solution
+    vector<int> solution; 
+    for(int i = 0; i < (int)tab.size(); ++i) {
+        solution.push_back(0); 
+    }
+    solution[0] = j; // on met la facility 
+
+    // Soit on vient de g(i-1, d) soit on vient de G(i-1, d-di). 
+    // suffit de vérifier que g(i-1,d) != g(i-1,d)
+    int pred;
+    int c_courant = tab[0].size()-1;  
+ 
+    for(int i = (int)tab.size()-1; i > 0; --i) {
+
+        pred = tab[i][c_courant].second; 
+        if(tab[i][c_courant].first == tab[i-1][c_courant].first) { // alors on vient de G(i-1, c_courant)
+            continue; // i pas dans sol
+        }
+        else {
+            solution[i]++;
+            c_courant = pred;  
+        }
+    }
+    
+    return solution;
+}
+
 // fonction qui calcule la valeur optimale du pricing par DP. 
 // il s'agit d'un sac a dos binaire 
 vector<int> modele::prog_dyn_sac(int j) {
@@ -167,7 +197,13 @@ vector<int> modele::prog_dyn_sac(int j) {
     int taille_sac = inst.uf[j]; 
     int nb_obj = inst.C; 
     vector<int> poids = inst.dc; 
-    vector<double> profits;  
+    vector<double> profits(nb_obj);  
+
+    // il faut calculer les profits; pour chaque objet, ils valent : pi_i - dist(i,j)
+    vector<double> duales = duales_des_clients(); 
+    for(int i = 0; i < nb_obj; ++i) {
+        profits[i] = dist(inst, i, j) - duales[i]; 
+    }
 
     // tableau prog dyn
     vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1));
@@ -176,6 +212,34 @@ vector<int> modele::prog_dyn_sac(int j) {
     for(int d = 0; d < taille_sac; ++d) {
         tableau[0][d] = {0,0}; 
     }
+
+    // résolution 
+    for(int i = 1; i < nb_obj + 1; ++i) {
+        for(int d = 0; d < taille_sac + 1; ++d) {
+
+            if(poids[i-1] > d) { // cas le poids de i excede la capacité
+                tableau[i][d] = tableau[i-1][d]; 
+            }
+            else {
+                // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
+                if(tableau[i-1][d-poids[i-1]].first + profits[i-1] > tableau[i-1][d].first) {
+
+                    tableau[i][d].first = tableau[i-1][d-poids[i-1]].first + profits[i-1]; 
+                    tableau[i][d].second = d-poids[i-1];
+
+                }
+                else { // cas G(i,d) = G(i-1, d) en gros, pas prendre i dans le sac 
+                    tableau[i][d] = tableau[i-1][d]; 
+                }
+            }
+        }
+    }
+
+    vector<int> solution; 
+    if(tableau[nb_obj][taille_sac].first - theta()) cout << "debug"; 
+
+    return {}; 
+
 }
 
 // destructeur modele 
