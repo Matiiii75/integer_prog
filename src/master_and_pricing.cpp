@@ -139,7 +139,6 @@ vector<int> modele::pricing(int j) {
 
 
 // boucle pour la génération de colonne
-
 void modele::gen_col() {
 
     while(true) {   
@@ -159,6 +158,25 @@ void modele::gen_col() {
     }
 }
 
+
+// fonction qui calcule la valeur optimale du pricing par DP. 
+// il s'agit d'un sac a dos binaire 
+vector<int> modele::prog_dyn_sac(int j) {
+
+    // données du pb 
+    int taille_sac = inst.uf[j]; 
+    int nb_obj = inst.C; 
+    vector<int> poids = inst.dc; 
+    vector<double> profits;  
+
+    // tableau prog dyn
+    vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1));
+
+    // remplissage état initiaux 
+    for(int d = 0; d < taille_sac; ++d) {
+        tableau[0][d] = {0,0}; 
+    }
+}
 
 // destructeur modele 
 modele::~modele() {

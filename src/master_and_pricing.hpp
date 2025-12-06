@@ -41,5 +41,6 @@ struct modele {
 
     ~modele();
 
+    vector<int> prog_dyn_sac(int j); 
 }; 
 

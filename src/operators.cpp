@@ -8,8 +8,8 @@ using Solution = vector<Point2D>;
 double Instance::checker(const Solution& sol) const{
 
     // contiendra les capacite consomme pour chaque entrepot
-    vector<double> capacite_conso(F, 0.0);
-    double obj = 0; 
+    vector<int> capacite_conso(F, 0.0);
+    int obj = 0; 
 
     for(size_t i = 0; i < sol.size(); ++i) { // pr chaque coord de sol
         bool isin = false; 
@@ -192,7 +192,6 @@ istream& operator>>(istream& in, Solution& sol) {
 
 
 // étant donné une instance et un entrepot, cette fonction calcule la distance les séparant 
-
 double dist(const Instance &inst, int i, int j) {
 
     if(i<0 || i >= inst.C) cout << "erreur dans dist, client impossible" << endl;
