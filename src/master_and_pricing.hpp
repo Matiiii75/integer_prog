@@ -1,0 +1,45 @@
+#pragma once 
+
+#include "operators.hpp"
+#include "gurobi_c++.h"
+#include <sstream> 
+
+using namespace std; 
+
+struct modele {
+
+    GRBEnv* env; 
+    GRBModel* model; 
+
+    Instance inst; 
+
+    // contraintes 
+    GRBConstr max_facility; 
+    vector<GRBConstr> tout_client_assigne; 
+
+    // colonnes 
+    int taille_col; 
+    vector<vector<int>> cols; 
+
+    modele(const Instance& inst_);
+
+    double calcul_cout_colonne(const vector<int>& colonne);
+
+    void ajoute_colonne(vector<int> colonne_du_pricing);
+
+    double theta();
+
+    vector<double> duales_des_clients(); 
+
+    void optimize();
+
+    double obj();
+
+    vector<int> pricing(int j);
+
+    void gen_col();
+
+    ~modele();
+
+}; 
+
