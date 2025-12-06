@@ -122,9 +122,9 @@ vector<int> modele::pricing(int j) {
     pricing_model.optimize(); 
 
     double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
-    cout << "pricing obj : " << pricing_obj - theta() << endl;
+    // cout << "pricing obj : " << pricing_obj << "theta : " << theta() << endl;
     // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
-    if(pricing_obj - theta() <= 1e-6) return {}; 
+    if(pricing_obj - theta() >= -1e-6) return {}; 
 
     // on créer la colonne 
     vector<int> colonne; 
@@ -236,10 +236,12 @@ vector<int> modele::prog_dyn_sac(int j) {
     }
 
     vector<int> solution; 
-    if(tableau[nb_obj][taille_sac].first - theta()) cout << "debug"; 
-
-    return {}; 
-
+    // si l'objectif <= 0 (a epsilon pret) renvoyer la solution reconstruite
+    if(tableau[nb_obj][taille_sac].first - theta() < -1e-6) {
+        return reconstruit_solution(tableau, j); 
+    } 
+    // sinon, pas de vecteur
+    return {};  
 }
 
 // destructeur modele 
