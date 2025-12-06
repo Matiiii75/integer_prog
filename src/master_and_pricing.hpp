@@ -39,8 +39,11 @@ struct modele {
 
     void gen_col();
 
-    ~modele();
+    vector<int> reconstruit_solution(const vector<vector<pair<double,int>>>& tab); 
 
     vector<int> prog_dyn_sac(int j); 
+
+    ~modele();
+    
 }; 
 
