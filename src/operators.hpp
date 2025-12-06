@@ -19,9 +19,9 @@ struct Instance {
 
     int C, F, p, U; 
     vector<Point2D> loc_client;  
-    vector<double> dc; 
+    vector<int> dc; 
     vector<Point2D> loc_f; 
-    vector<double> uf; 
+    vector<int> uf; 
 
     double checker(const Solution& sol) const; // const car pas de mofif de inst
     // et const solution car passage par ref pour mémoire mais pas de modif autorisé
