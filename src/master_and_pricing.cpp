@@ -325,6 +325,9 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
 
 vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
 
+    // debug 
+    cout << "ENTREE prog_dyn_TEST avec j = " << j << endl;
+
     // données du pb 
     int taille_sac = inst.uf[j];  
     vector<int> poids; 
@@ -342,6 +345,8 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     int nb_obj = liaisons.size(); 
     vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1)); // tableau prog dyn
     for(int d = 0; d < taille_sac; ++d) tableau[0][d] = {0,0}; 
+
+    cout << "ok apres creation tableau pour j = " << j << ". COmmence resolution ..." << endl; 
 
     // ----------------------- RESOLUTION PROG DYN ----------------------- 
     
