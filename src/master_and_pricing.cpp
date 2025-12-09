@@ -354,6 +354,15 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
 
         // debug 
         cout << "boucle for sur i = " << i << endl; 
+        if(i == 100) {
+            cout << "nbObj = " << nb_obj << endl; 
+            cout << "inst.C = " << inst.C << endl;
+            cout << "tab.size() = " << tableau.size() << endl;
+            cout << "tab[0].size() = " << tableau[0].size() << endl;
+        }    
+
+        // fin debug 
+
 
         for(int d = 0; d < taille_sac + 1; ++d) {
 
