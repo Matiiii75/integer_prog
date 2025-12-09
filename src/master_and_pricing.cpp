@@ -300,16 +300,15 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
     // debug 
     cout << "entree reconstruit sol j = " << j << endl;
 
-    vector<int> solution; 
-    for(int i = 0; i < inst.C+1; ++i) {
-        solution.push_back(0); 
-    }
+    vector<int> solution(inst.C+1, 0); 
     solution[0] = j; // on met la facility 
 
     // Soit on vient de g(i-1, d) soit on vient de G(i-1, d-di). 
     // suffit de vérifier que g(i-1,d) != g(i-1,d)
     int pred;
     int c_courant = tab[0].size()-1;  
+    
+    cout << "c_courant = " << c_courant << endl;
  
     for(int i = (int)tab.size()-1; i > 0; --i) {
 
@@ -318,7 +317,7 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
             continue; // i pas dans sol
         }
         else {
-            solution[liaisons[i]]++;
+            solution[liaisons[i-1]]++;
             c_courant = pred;  
         }
     }
