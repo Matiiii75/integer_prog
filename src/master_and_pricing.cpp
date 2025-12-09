@@ -202,13 +202,11 @@ vector<int> modele::prog_dyn_sac(int j, const vector<double>& duales, const vect
     }
 
     vector<int> solution; 
-    
-    // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
-    if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) {
+    if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
         return reconstruit_solution(j, tableau); 
     } 
-    // sinon, pas de vecteur
-    return {};  
+    
+    return {};  // sinon, pas de vecteur
 }
 
 
@@ -221,7 +219,6 @@ vector<double> modele::couts_reduits_j(int j, const vector<double>& duales) {
 
     return cr; 
 }
-
 
 // boucle pour la génération de colonne
 void modele::gen_col() {
@@ -253,7 +250,6 @@ void modele::gen_col() {
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
     cout << duration.count() << endl;
 }
-
 
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP() {
@@ -287,12 +283,136 @@ void modele::gen_col_DP() {
 
 }
 
-
 // destructeur modele 
 modele::~modele() {
     delete env; 
     delete model; 
 }
+
+
+
+
+
+/* ########### DEBUT PARTIE TEST D AMELIORATION PROG DYN ########### */
+
+
+// fonction qui reconstruit la solution trouvée par le programme dynamique 
+vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab) {
+
+    vector<int> solution; 
+    for(int i = 0; i < inst.C+1; ++i) {
+        solution.push_back(0); 
+    }
+    solution[0] = j; // on met la facility 
+
+    // Soit on vient de g(i-1, d) soit on vient de G(i-1, d-di). 
+    // suffit de vérifier que g(i-1,d) != g(i-1,d)
+    int pred;
+    int c_courant = tab[0].size()-1;  
+ 
+    for(int i = (int)tab.size()-1; i > 0; --i) {
+
+        pred = tab[i][c_courant].second; 
+        if(tab[i][c_courant].first == tab[i-1][c_courant].first) { // alors on vient de G(i-1, c_courant)
+            continue; // i pas dans sol
+        }
+        else {
+            solution[liaisons[i]]++;
+            c_courant = pred;  
+        }
+    }
+
+    return solution;
+}
+
+
+vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
+
+    // données du pb 
+    int taille_sac = inst.uf[j];  
+    vector<int> poids; 
+    vector<double> profits;
+
+    vector<int> liaisons; 
+    for(int i = 0; i < inst.C; ++i) { // si cr < 0 pour client i, alors on va le considérer dans le sac à dos; 
+        if(distances[i][j] - duales[i] < 0) {
+            liaisons.push_back(i); // on retiens l'index du client i 
+            profits.push_back(-distances[i][j] + duales[i]); // inversion signes car max du knapsack
+            poids.push_back(inst.dc[i]); // on retiens le poids de i 
+        }
+    }
+    
+    int nb_obj = liaisons.size(); 
+    vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1)); // tableau prog dyn
+    for(int d = 0; d < taill_sac; ++d) tableau[0][d] = {0,0}; 
+
+    // ----------------------- RESOLUTION PROG DYN ----------------------- 
+    
+    for(int i = 1; i < nb_obj + 1; ++i) { 
+        for(int d = 0; d < taille_sac + 1; ++d) {
+
+            if(poids[i-1] > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
+            else 
+            {
+                // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
+                if(tableau[i-1][d-poids[i-1]].first + profits[i-1] > tableau[i-1][d].first) {
+
+                    tableau[i][d].first = tableau[i-1][d-poids[i-1]].first + profits[i-1]; 
+                    tableau[i][d].second = d-poids[i-1];
+
+                }
+                else { // cas G(i,d) = G(i-1, d) en gros, pas prendre i dans le sac 
+                    tableau[i][d] = tableau[i-1][d]; 
+                }
+            }
+        }
+    }
+
+    vector<int> solution; 
+    if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
+        return reconstruit_solution(j, liaisons, tableau); 
+    } 
+    
+    return {};  // sinon, pas de vecteur
+
+}
+
+
+// fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
+void modele::gen_col_DP_TEST() {
+
+    auto start = std::chrono::high_resolution_clock::now(); 
+
+    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); // calcul distances préalable
+    for(int i = 0; i < inst.C; ++i) {
+        for(int j = 0; j < inst.F; ++j) {
+            matrice_distances[i][j] = dist(inst,i,j); 
+        }
+    }
+
+    while(true) {   
+        bool a_ajouter = false;  
+        vector<double> duales = duales_des_clients(); 
+        for(int j = 0; j < inst.F; ++j) {
+            auto col = prog_dyn_TEST(j, duales, matrice_distances); 
+            if(col.empty()) continue; // si colonne vide, on l'ajoute pas
+            ajoute_colonne(col); 
+            a_ajouter = true; 
+        }
+        
+        if(!a_ajouter) break; // si on a aajouté aucune col 
+        optimize(); 
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    cout << duration.count() << endl;
+
+}
+
+/* ########### FIN PARTIE TEST D AMELIORATION PROG DYN ########### */
+
+
 
 
 int main(int argc, char* argv[]) {
@@ -310,6 +430,9 @@ int main(int argc, char* argv[]) {
     if(choix=='0') {
         m.gen_col(); 
     }  
+    if(choix=='2') {
+        m.gen_col_DP_TEST(); 
+    }
     
     cout << "relaxation LP maitre : " << m.obj() << endl;
 

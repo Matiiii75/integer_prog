@@ -46,6 +46,17 @@ struct modele {
 
     vector<double> couts_reduits_j(int j, const vector<double>& duales); 
 
+
+    // DEBUT IMPLE TEST PROG DYN
+
+    vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab); 
+
+    vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vector<vector<double>>& distances); 
+
+    void modele::gen_col_DP_TEST(); 
+
+    // DEBUT IMPLE TEST PROG DYN
+
     void gen_col_DP(); 
 
     ~modele();
