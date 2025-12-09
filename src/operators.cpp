@@ -197,8 +197,10 @@ double dist(const Instance &inst, int i, int j) {
     if(i<0 || i >= inst.C) cout << "erreur dans dist, client impossible" << endl;
     if(j<0 || i >= inst.F) cout << "erreur dans dist, entrepot impossible" << endl;
 
-    return pow( pow( inst.loc_client[i].x - inst.loc_f[j].x , 2) 
-                + pow(inst.loc_client[i].y - inst.loc_f[j].y , 2), 0.5);
+    double x = inst.loc_client[i].x - inst.loc_f[j].x; 
+    double y = inst.loc_client[i].y - inst.loc_f[j].y; 
+
+    return sqrt(x*x + y*y);
 } 
 
 

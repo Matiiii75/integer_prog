@@ -17,8 +17,8 @@ modele::modele(const Instance& inst_) : inst(inst_) {
     // ajout d'une colonne initiale où tous les clients sont selectionnés 
     // cette colonne aura un coefficient >grand pour s'assurer qu'on ne la selectionne 
     // plus ensuite. 
-
-    GRBVar t = model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
+    vector<GRBVar> t(inst.C); 
+    // GRBVar t = model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
 
     cout << "ok ajout variable t" << endl;
     // contrainte pas plus de p entrepot
@@ -27,7 +27,8 @@ modele::modele(const Instance& inst_) : inst(inst_) {
     cout << "ok ajout facility cstr" << endl;
     // tout client servis 
     for(int i = 0; i < inst.C; ++i) {
-        tout_client_assigne.push_back(model->addConstr(t == 1)); 
+        t[i] = model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS); 
+        tout_client_assigne.push_back(model->addConstr(t[i] == 1)); 
     }
     cout << "ok apres boucle tout client assigne" << endl;
 
@@ -103,17 +104,15 @@ double modele::obj() {
 
 
 // résoud le pricing. Prends en entrée j : la facility considérée. Renvoie une colonne
-vector<int> modele::pricing(int j) {
+vector<int> modele::pricing(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
 
     GRBModel pricing_model(env); 
 
     GRBLinExpr contraintes;
     vector<GRBVar> x; 
 
-    vector<double> duales = duales_des_clients(); // récupère les duales
-
     for(int i = 0; i < inst.C; ++i) {
-        x.push_back(pricing_model.addVar(0.0, 1.0, dist(inst, i, j) - duales[i], GRB_INTEGER));
+        x.push_back(pricing_model.addVar(0.0, 1.0, distances[i][j] - duales[i], GRB_INTEGER));
         contraintes += x.back()*inst.dc[i]; 
     }
 
@@ -122,7 +121,7 @@ vector<int> modele::pricing(int j) {
     pricing_model.optimize(); 
 
     double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
-    // cout << "pricing obj : " << pricing_obj << "theta : " << theta() << endl;
+    cout << "pricing obj : " << pricing_obj - theta() << endl;
     // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
     if(pricing_obj - theta() >= -1e-6) return {}; 
 
@@ -143,19 +142,37 @@ void modele::gen_col() {
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
+    // test debug : pre calculer la matrice des distances : 
+    // en hypothèse ça devrait pas améliorer le temps de traitement un minimum ? 
+    // puisque pas de calcul distance à chaque pricing ? 
+    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); 
+    for(int i = 0; i < inst.C; ++i) {
+        for(int j = 0; j < inst.F; ++j) {
+            matrice_distances[i][j] = dist(inst,i,j); 
+        }
+    }
+
+
     while(true) {   
 
-        vector<vector<int>> col_a_ajouter; 
+        bool a_ajoute = false; 
+        // vector<vector<int>> col_a_ajouter; 
         for(int j = 0; j < inst.F; ++j) {
-            auto col = pricing(j); 
-            if(col.empty()) continue; // si colonne vide, on l'ajoute pas
-            col_a_ajouter.push_back(col); 
+            
+            vector<double> duales = duales_des_clients(); 
+            auto col = pricing(j, duales, matrice_distances); 
+            if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
+            ajoute_colonne(col); // on l'ajoute
+            a_ajoute = true; // on retient 
+            //col_a_ajouter.push_back(col); 
         }
+
+        if(!a_ajoute) break; 
         
-        if(col_a_ajouter.empty()) break; // si on a aucune colonne a ajouter, on quitte 
-        for(auto& col : col_a_ajouter) { 
-            ajoute_colonne(col); 
-        } 
+        // if(col_a_ajouter.empty()) break; // si on a aucune colonne a ajouter, on quitte 
+        // for(auto& col : col_a_ajouter) { 
+        //     ajoute_colonne(col); 
+        // } 
         optimize(); 
     }
 

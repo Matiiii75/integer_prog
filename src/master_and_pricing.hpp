@@ -36,7 +36,7 @@ struct modele {
 
     double obj();
 
-    vector<int> pricing(int j);
+    vector<int> pricing(int j, const vector<double>& duales, const vector<vector<double>>& distances);
 
     void gen_col();
 
