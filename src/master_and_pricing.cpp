@@ -296,10 +296,6 @@ modele::~modele() {
 // fonction qui reconstruit la solution trouvée par le programme dynamique 
 vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab) {
 
-
-    // debug 
-    cout << "entree reconstruit sol j = " << j << endl;
-
     vector<int> solution(inst.C+1, 0); 
     solution[0] = j; // on met la facility 
 
@@ -307,8 +303,6 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
     // suffit de vérifier que g(i-1,d) != g(i-1,d)
     int pred;
     int c_courant = tab[0].size()-1;  
-    
-    cout << "c_courant = " << c_courant << endl;
  
     for(int i = (int)tab.size()-1; i > 0; --i) {
 
@@ -328,9 +322,6 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
 
 vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
 
-    // debug 
-    cout << "ENTREE prog_dyn_TEST avec j = " << j << endl;
-
     // données du pb 
     int taille_sac = inst.uf[j];  
     vector<int> poids; 
@@ -349,40 +340,15 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1)); // tableau prog dyn
     for(int d = 0; d < taille_sac; ++d) tableau[0][d] = {0,0}; 
 
-    cout << "ok apres creation tableau pour j = " << j << ". COmmence resolution ..." << endl; 
-
     // ----------------------- RESOLUTION PROG DYN ----------------------- 
     
     for(int i = 1; i < nb_obj + 1; ++i) { 
-
-        // debug 
-        cout << "boucle for sur i = " << i << endl; 
-        if(i == 100) {
-            cout << "nbObj = " << nb_obj << endl; 
-            cout << "inst.C = " << inst.C << endl;
-            cout << "tab.size() = " << tableau.size() << endl;
-            cout << "tab[0].size() = " << tableau[0].size() << endl;
-        }    
-
-        // fin debug 
-
-
         for(int d = 0; d < taille_sac + 1; ++d) {
-            cout << "tab[i][d] " << tableau[i][d].first << endl;
-            // debug 
-            cout << "boucle for sur d = " << d << endl;
-            cout << "poids.size() : " << poids.size() << endl; 
-            cout << "poids[i-1] = " << poids[i-1] << endl;
-            cout << "tableau,i,d =" << tableau[i][d].first << " et tab[i-1][d] =" << tableau[i-1][d].first << endl;
-            if(poids[i-1] > d) {
-                tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite  
-                cout << "here ok" << endl;
-            }
+
+            if(poids[i-1] > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
             else 
             {   
-                cout << "heere ok 2" << endl;
                 // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
-                cout << "poids[i-1] = " << poids[i-1] << endl;
                 if(tableau[i-1][d-poids[i-1]].first + profits[i-1] > tableau[i-1][d].first) {
 
                     tableau[i][d].first = tableau[i-1][d-poids[i-1]].first + profits[i-1]; 
@@ -396,10 +362,14 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
         }
     }
 
-    cout << "here FINAL" << endl;
     vector<int> solution; 
+
+    // debug 
+    cout << "SOLUTION : " << endl;
+    for(int & i : solution) cout << solution[i] << " "; 
+    cout << endl;
+    
     if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
-        cout << "here f2" << endl;
         return reconstruit_solution_TEST(j, liaisons, tableau); 
     } 
     
