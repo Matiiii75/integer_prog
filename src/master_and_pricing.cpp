@@ -379,6 +379,7 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
             {   
                 cout << "heere ok 2" << endl;
                 // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
+                cout << "poids[i-1] = " << poids[i-1] << endl;
                 if(tableau[i-1][d-poids[i-1]].first + profits[i-1] > tableau[i-1][d].first) {
 
                     tableau[i][d].first = tableau[i-1][d-poids[i-1]].first + profits[i-1]; 
