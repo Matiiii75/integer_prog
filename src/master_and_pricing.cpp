@@ -363,16 +363,14 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     }
 
     vector<int> solution; 
-
-    // debug 
-    cout << "SOLUTION.size() : " << solution.size() << endl;
-    for(int & i : solution) cout << solution[i] << " "; 
-    cout << endl;
-
     if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
         return reconstruit_solution_TEST(j, liaisons, tableau); 
+        // debug 
+        cout << "SOLUTION.size() : " << solution.size() << endl;
+        for(int & i : solution) cout << solution[i] << " "; 
+        cout << endl;
     } 
-    
+
     return {};  // sinon, pas de vecteur
 
 }
