@@ -173,7 +173,7 @@ vector<int> modele::prog_dyn_sac(int j, const vector<double>& duales, const vect
     vector<double> profits(nb_obj);  
 
     for(int i = 0; i < nb_obj; ++i) { // il faut calculer les profits; pour chaque objet, ils valent : pi_i - dist(i,j)
-        profits[i] = distances[i][j] + duales[i]; 
+        profits[i] = -distances[i][j] + duales[i]; 
     }
 
     vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1)); // tableau prog dyn
@@ -205,7 +205,7 @@ vector<int> modele::prog_dyn_sac(int j, const vector<double>& duales, const vect
     
     // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
     if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) {
-        return reconstruit_solution(tableau, j); 
+        return reconstruit_solution(j, tableau); 
     } 
     // sinon, pas de vecteur
     return {};  
