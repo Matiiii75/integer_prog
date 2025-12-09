@@ -311,16 +311,10 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
             continue; // i pas dans sol
         }
         else {
-            solution[liaisons[i-1]+1]++;
+            solution[liaisons[i-1]+1]++; // je mets plus 1 car sinon on risquerait de moidifier la facility !!
             c_courant = pred;  
         }
     }
-
-    // debug 
-
-    cout << "dans rebuild : " << endl;
-    for(int & i : solution) cout << i << " "; 
-    cout << endl;
 
     return solution;
 }
@@ -367,15 +361,10 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
             }
         }
     }
-    cout << "tab opt = " << tableau[nb_obj][taille_sac].first << " et -theta : " << -theta() << endl;
 
     vector<int> solution; 
     if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
         return reconstruit_solution_TEST(j, liaisons, tableau); 
-        // debug 
-        cout << "SOLUTION.size() : " << solution.size() << endl;
-        for(int & i : solution) cout << solution[i] << " "; 
-        cout << endl;
     } 
 
     return {};  // sinon, pas de vecteur
@@ -398,12 +387,6 @@ void modele::gen_col_DP_TEST() {
     while(true) {   
         bool a_ajouter = false;  
         vector<double> duales = duales_des_clients(); 
-
-        //debug 
-        cout << "DUALeS" << endl;
-        for(double& i : duales) cout << i << " "; 
-        cout << endl;
-
         for(int j = 0; j < inst.F; ++j) {
             auto col = prog_dyn_TEST(j, duales, matrice_distances); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
