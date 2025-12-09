@@ -365,7 +365,7 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
 
 
         for(int d = 0; d < taille_sac + 1; ++d) {
-            cout << "tab[i][d] " << tableau[i][d] << endl;
+            cout << "tab[i][d] " << tableau[i][d].first << endl;
             // debug 
             cout << "boucle for sur d = " << d << endl;
             cout << "poids.size() : " << poids.size() << endl; 
