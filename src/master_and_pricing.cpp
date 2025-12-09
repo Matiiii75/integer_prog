@@ -386,11 +386,17 @@ void modele::gen_col_DP_TEST() {
             matrice_distances[i][j] = dist(inst,i,j); 
         }
     }
+    
+    // debug 
+    cout << "avant while ok" << endl;
 
     while(true) {   
         bool a_ajouter = false;  
         vector<double> duales = duales_des_clients(); 
         for(int j = 0; j < inst.F; ++j) {
+            // debug 
+            cout << "dans boucle for avec j = " << j << endl;
+            
             auto col = prog_dyn_TEST(j, duales, matrice_distances); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
