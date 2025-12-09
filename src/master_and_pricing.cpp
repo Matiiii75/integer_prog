@@ -12,25 +12,16 @@ modele::modele(const Instance& inst_) : inst(inst_) {
     env->set(GRB_IntParam_LogToConsole, 0); // désactive les logs
     env->start(); 
     model = new GRBModel(*env); 
-
-    cout << "ok creeation modele builder" << endl;
-    // ajout d'une colonne initiale où tous les clients sont selectionnés 
-    // cette colonne aura un coefficient >grand pour s'assurer qu'on ne la selectionne 
-    // plus ensuite. 
+     
     vector<GRBVar> t(inst.C); 
-    // GRBVar t = model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, "t");
-
-    cout << "ok ajout variable t" << endl;
     // contrainte pas plus de p entrepot
     max_facility = model->addConstr(0.0, GRB_LESS_EQUAL, inst.p); 
 
-    cout << "ok ajout facility cstr" << endl;
     // tout client servis 
     for(int i = 0; i < inst.C; ++i) {
         t[i] = model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS); 
         tout_client_assigne.push_back(model->addConstr(t[i] == 1)); 
     }
-    cout << "ok apres boucle tout client assigne" << endl;
 
     model->optimize(); 
 
