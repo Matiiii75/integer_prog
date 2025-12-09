@@ -351,7 +351,14 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     // ----------------------- RESOLUTION PROG DYN ----------------------- 
     
     for(int i = 1; i < nb_obj + 1; ++i) { 
+
+        // debug 
+        cout << "boucle for sur i = " << i << endl; 
+
         for(int d = 0; d < taille_sac + 1; ++d) {
+
+            // debug 
+            cout << "boucle for sur d = " << d << endl;
 
             if(poids[i-1] > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
             else 
