@@ -396,8 +396,8 @@ void modele::gen_col_DP_TEST() {
         for(int j = 0; j < inst.F; ++j) {
             // debug 
             cout << "dans boucle for avec j = " << j << endl;
-            
             auto col = prog_dyn_TEST(j, duales, matrice_distances); 
+            cout << "j2 = " << j << endl;
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajouter = true; 
