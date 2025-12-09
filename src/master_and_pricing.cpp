@@ -121,7 +121,7 @@ vector<int> modele::pricing(int j, const vector<double>& duales, const vector<ve
     pricing_model.optimize(); 
 
     double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
-    cout << "pricing obj : " << pricing_obj - theta() << endl;
+    // cout << "pricing obj : " << pricing_obj - theta() << endl;
     // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
     if(pricing_obj - theta() >= -1e-6) return {}; 
 
@@ -156,10 +156,10 @@ void modele::gen_col() {
     while(true) {   
 
         bool a_ajoute = false; 
+        vector<double> duales = duales_des_clients();
         // vector<vector<int>> col_a_ajouter; 
         for(int j = 0; j < inst.F; ++j) {
-            
-            vector<double> duales = duales_des_clients(); 
+             
             auto col = pricing(j, duales, matrice_distances); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
             ajoute_colonne(col); // on l'ajoute
@@ -259,12 +259,137 @@ vector<int> modele::prog_dyn_sac(int j) {
     }
 
     vector<int> solution; 
+    
     // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
     if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) {
         return reconstruit_solution(tableau, j); 
     } 
     // sinon, pas de vecteur
     return {};  
+}
+
+
+
+// FONCTION TEST AMELIORATION PROG DYN 
+vector<int> modele::prog_dyn_TEST(int j, const vector<double>& Couts_reduits) {
+
+    // en gros, je veux exclure les clients de cr >= 0; Mais, je vois pas comment construire ma programmation dynamique dessus 
+    // sans tous les considérer
+    cout << "COUT REDUITS" << endl;
+    for(double  m : Couts_reduits) cout << m << ","; 
+    vector<int> dn; // permet de mémoriser la normalisation dn[0] = index d'origine
+    for(int i = 0; i < inst.C; ++i) {
+        if(Couts_reduits[i] < -1e-6) { // si cr < 0
+            dn.push_back(i);
+        }
+    }
+    cout << "DN :::" << endl;
+    for(int m : dn) cout << m << ",";
+
+    int nb_obj = dn.size();
+    int taille_sac = inst.uf[j]; 
+    vector<int> poids = inst.dc; 
+
+    // tableau prog dyn
+    vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1));
+
+    // remplissage état initiaux 
+    for(int d = 0; d < taille_sac; ++d) {
+        tableau[0][d] = {0,0}; 
+    }
+
+    // résolution 
+    for(int i = 1; i < nb_obj + 1; ++i) {
+        for(int d = 0; d < taille_sac + 1; ++d) {
+            
+            int k = dn[i-1]; 
+
+            if(poids[k] > d) { // cas le poids de i excede la capacité
+                tableau[i][d] = tableau[i-1][d]; 
+            }
+            else {
+                // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
+                if(tableau[i-1][d-poids[k]].first + Couts_reduits[k] > tableau[i-1][d].first) {
+
+                    tableau[i][d].first = tableau[i-1][d-poids[k]].first + Couts_reduits[k]; 
+                    tableau[i][d].second = d-poids[k];
+
+                }
+                else { // cas G(i,d) = G(i-1, d) en gros, pas prendre i dans le sac 
+                    tableau[i][d] = tableau[i-1][d]; 
+                }
+            }
+        }
+    }
+
+    // PARTIE RECONSTITUTION SOLUTION 
+    vector<int> solution; 
+    // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
+    cout << "SOLUTION VALEUR OPT TABLEAU : " << -tableau[nb_obj][taille_sac].first - theta() << endl; 
+    if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) {
+        solution = reconstruit_solution(tableau, j); 
+    
+
+        vector<int> sol_finale(inst.C+1); 
+        sol_finale[0] = j; 
+        for(int i = 1; i < inst.C+1; ++i) {
+            sol_finale[i] = 0; 
+        }
+        for(int i = 1; i < (int)solution.size(); ++i) {
+            if(solution[i]) sol_finale[dn[i-1]] = 1; 
+        }
+
+        cout << "PRICING " << j << endl;
+        for(int& i : solution) cout << i << ",";
+        cout << endl;
+        // sinon, pas de vecteur
+        return solution;
+    
+    }
+    // pas de solution 
+    return {};
+}
+
+
+// fonction TESTTTTT qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
+void modele::gen_col_DP_TEST() {
+
+    auto start = std::chrono::high_resolution_clock::now(); 
+
+    while(true) {   
+
+        // récup duales
+        vector<double> duales = duales_des_clients(); 
+
+        // debug
+        for(double& d : duales) cout << d << " "; 
+        cout << endl;
+
+        vector<vector<int>> col_a_ajouter; 
+        for(int j = 0; j < inst.F; ++j) {
+
+            // calcul couts réduits 
+            vector<double> cr(inst.C); 
+            for(int i = 0; i < inst.C; ++i) {
+                cr[i] = dist(inst, i, j) - duales[i]; 
+            }
+
+            auto col = prog_dyn_TEST(j, cr); 
+            if(col.empty()) continue; // si colonne vide, on l'ajoute pas
+            col_a_ajouter.push_back(col); 
+        }
+        
+        if(col_a_ajouter.empty()) break; // si on a aucune colonne a ajouter, on quitte 
+        for(auto& col : col_a_ajouter) { 
+            ajoute_colonne(col); 
+        } 
+        optimize(); 
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    cout << duration.count() << endl;
+
 }
 
 
@@ -296,7 +421,6 @@ void modele::gen_col_DP() {
 }
 
 
-
 // destructeur modele 
 modele::~modele() {
     delete env; 
@@ -319,6 +443,9 @@ int main(int argc, char* argv[]) {
     if(choix=='0') {
         m.gen_col(); 
     }  
+    if(choix=='2') {
+        m.gen_col_DP_TEST(); 
+    }
     
     cout << "relaxation LP maitre : " << m.obj() << endl;
 
