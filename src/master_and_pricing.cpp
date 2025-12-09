@@ -296,6 +296,10 @@ modele::~modele() {
 // fonction qui reconstruit la solution trouvée par le programme dynamique 
 vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab) {
 
+
+    // debug 
+    cout << "entree reconstruit sol j = " << j << endl;
+
     vector<int> solution; 
     for(int i = 0; i < inst.C+1; ++i) {
         solution.push_back(0); 
@@ -396,6 +400,7 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     cout << "here FINAL" << endl;
     vector<int> solution; 
     if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
+        cout << "here f2" << endl;
         return reconstruit_solution_TEST(j, liaisons, tableau); 
     } 
     
