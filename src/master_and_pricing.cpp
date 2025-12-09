@@ -371,7 +371,7 @@ void modele::gen_col_DP_TEST() {
             // calcul couts réduits 
             vector<double> cr(inst.C); 
             for(int i = 0; i < inst.C; ++i) {
-                cr[i] = dist(inst, i, j) - duales[i]; 
+                cr[i] = -dist(inst, i, j) + duales[i]; 
             }
 
             auto col = prog_dyn_TEST(j, cr); 
