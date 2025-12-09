@@ -320,7 +320,7 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
 
     cout << "dans rebuild : " << endl;
     for(int & i : solution) cout << solution[i] << " "; 
-    cout << end;
+    cout << endl;
 
     return solution;
 }
