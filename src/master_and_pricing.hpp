@@ -44,9 +44,7 @@ struct modele {
 
     vector<int> prog_dyn_sac(int j); 
 
-    vector<int> prog_dyn_TEST(int j, const vector<double>& Couts_reduits); 
-
-    void gen_col_DP_TEST();
+    vector<double> couts_reduits_j(int j, const vector<double>& duales); 
 
     void gen_col_DP(); 
 
