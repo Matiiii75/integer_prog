@@ -368,9 +368,9 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
 
             // debug 
             cout << "boucle for sur d = " << d << endl;
+            cout << "poids.size() : " << poids.size() << endl; 
 
             if(poids[i-1] > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
-            cout << "apres if" << endl; 
             else 
             {
                 // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
