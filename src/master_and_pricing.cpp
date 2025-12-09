@@ -107,7 +107,6 @@ double modele::obj() {
 vector<int> modele::pricing(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
 
     GRBModel pricing_model(env); 
-
     GRBLinExpr contraintes;
     vector<GRBVar> x; 
 
@@ -117,16 +116,14 @@ vector<int> modele::pricing(int j, const vector<double>& duales, const vector<ve
     }
 
     pricing_model.addConstr(contraintes <= inst.uf[j]); 
-
     pricing_model.optimize(); 
 
     double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
-    // cout << "pricing obj : " << pricing_obj - theta() << endl;
+
     // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
     if(pricing_obj - theta() >= -1e-6) return {}; 
 
-    // on créer la colonne 
-    vector<int> colonne; 
+    vector<int> colonne; // on créer la colonne 
     colonne.push_back(j); 
     for(int i = 0; i < inst.C; ++i) {
         if(x[i].get(GRB_DoubleAttr_X) > 0.5) colonne.push_back(1); 
@@ -137,55 +134,9 @@ vector<int> modele::pricing(int j, const vector<double>& duales, const vector<ve
 }
 
 
-// boucle pour la génération de colonne
-void modele::gen_col() {
-
-    auto start = std::chrono::high_resolution_clock::now(); 
-
-    // test debug : pre calculer la matrice des distances : 
-    // en hypothèse ça devrait pas améliorer le temps de traitement un minimum ? 
-    // puisque pas de calcul distance à chaque pricing ? 
-    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); 
-    for(int i = 0; i < inst.C; ++i) {
-        for(int j = 0; j < inst.F; ++j) {
-            matrice_distances[i][j] = dist(inst,i,j); 
-        }
-    }
-
-
-    while(true) {   
-
-        bool a_ajoute = false; 
-        vector<double> duales = duales_des_clients();
-        // vector<vector<int>> col_a_ajouter; 
-        for(int j = 0; j < inst.F; ++j) {
-             
-            auto col = pricing(j, duales, matrice_distances); 
-            if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
-            ajoute_colonne(col); // on l'ajoute
-            a_ajoute = true; // on retient 
-            //col_a_ajouter.push_back(col); 
-        }
-
-        if(!a_ajoute) break; 
-        
-        // if(col_a_ajouter.empty()) break; // si on a aucune colonne a ajouter, on quitte 
-        // for(auto& col : col_a_ajouter) { 
-        //     ajoute_colonne(col); 
-        // } 
-        optimize(); 
-    }
-
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
-    cout << duration.count() << endl;
-}
-
-
 // fonction qui reconstruit la solution trouvée par le programme dynamique 
-vector<int> modele::reconstruit_solution(const vector<vector<pair<double,int>>>& tab, int j) {
+vector<int> modele::reconstruit_solution(int j, const vector<vector<pair<double,int>>>& tab) {
 
-    // vecteur binaire contiendra la solution
     vector<int> solution; 
     for(int i = 0; i < (int)tab.size(); ++i) {
         solution.push_back(0); 
@@ -208,13 +159,12 @@ vector<int> modele::reconstruit_solution(const vector<vector<pair<double,int>>>&
             c_courant = pred;  
         }
     }
-    
+
     return solution;
 }
 
-// fonction qui calcule la valeur optimale du pricing par DP. 
-// il s'agit d'un sac a dos binaire 
-vector<int> modele::prog_dyn_sac(int j) {
+// fonction qui calcule la valeur optimale du pricing par DP. il s'agit d'un sac a dos binaire 
+vector<int> modele::prog_dyn_sac(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
 
     // données du pb 
     int taille_sac = inst.uf[j]; 
@@ -222,28 +172,21 @@ vector<int> modele::prog_dyn_sac(int j) {
     vector<int> poids = inst.dc; 
     vector<double> profits(nb_obj);  
 
-    // il faut calculer les profits; pour chaque objet, ils valent : pi_i - dist(i,j)
-    vector<double> duales = duales_des_clients(); 
-    for(int i = 0; i < nb_obj; ++i) {
-        profits[i] = -dist(inst, i, j) + duales[i]; 
+    for(int i = 0; i < nb_obj; ++i) { // il faut calculer les profits; pour chaque objet, ils valent : pi_i - dist(i,j)
+        profits[i] = distances[i][j] + duales[i]; 
     }
 
-    // tableau prog dyn
-    vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1));
+    vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1)); // tableau prog dyn
+    for(int d = 0; d < taille_sac; ++d) tableau[0][d] = {0,0}; // remplissage état initiaux 
+    
+    // ----------------------- RESOLUTION PROG DYN ----------------------- 
 
-    // remplissage état initiaux 
-    for(int d = 0; d < taille_sac; ++d) {
-        tableau[0][d] = {0,0}; 
-    }
-
-    // résolution 
-    for(int i = 1; i < nb_obj + 1; ++i) {
+    for(int i = 1; i < nb_obj + 1; ++i) { 
         for(int d = 0; d < taille_sac + 1; ++d) {
 
-            if(poids[i-1] > d) { // cas le poids de i excede la capacité
-                tableau[i][d] = tableau[i-1][d]; 
-            }
-            else {
+            if(poids[i-1] > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
+            else 
+            {
                 // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
                 if(tableau[i-1][d-poids[i-1]].first + profits[i-1] > tableau[i-1][d].first) {
 
@@ -280,24 +223,61 @@ vector<double> modele::couts_reduits_j(int j, const vector<double>& duales) {
 }
 
 
+// boucle pour la génération de colonne
+void modele::gen_col() {
+
+    auto start = std::chrono::high_resolution_clock::now(); 
+
+    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); // EST CE VRM UTILE ? 
+    for(int i = 0; i < inst.C; ++i) {
+        for(int j = 0; j < inst.F; ++j) {
+            matrice_distances[i][j] = dist(inst,i,j); 
+        }
+    }
+
+    while(true) {   
+        bool a_ajoute = false; 
+        vector<double> duales = duales_des_clients();
+        for(int j = 0; j < inst.F; ++j) {  
+            auto col = pricing(j, duales, matrice_distances); 
+            if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
+            ajoute_colonne(col); // on l'ajoute
+            a_ajoute = true; // on retient 
+        }
+
+        if(!a_ajoute) break; 
+        optimize(); 
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    cout << duration.count() << endl;
+}
+
+
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP() {
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
-    while(true) {   
-
-        vector<vector<int>> col_a_ajouter; 
+    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); // calcul distances préalable
+    for(int i = 0; i < inst.C; ++i) {
         for(int j = 0; j < inst.F; ++j) {
-            auto col = prog_dyn_sac(j); 
+            matrice_distances[i][j] = dist(inst,i,j); 
+        }
+    }
+
+    while(true) {   
+        bool a_ajouter = false;  
+        vector<double> duales = duales_des_clients(); 
+        for(int j = 0; j < inst.F; ++j) {
+            auto col = prog_dyn_sac(j, duales, matrice_distances); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
-            col_a_ajouter.push_back(col); 
+            ajoute_colonne(col); 
+            a_ajouter = true; 
         }
         
-        if(col_a_ajouter.empty()) break; // si on a aucune colonne a ajouter, on quitte 
-        for(auto& col : col_a_ajouter) { 
-            ajoute_colonne(col); 
-        } 
+        if(!a_ajouter) break; // si on a aajouté aucune col 
         optimize(); 
     }
 

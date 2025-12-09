@@ -40,9 +40,9 @@ struct modele {
 
     void gen_col();
 
-    vector<int> reconstruit_solution(const vector<vector<pair<double,int>>>& tab, int j); 
+    vector<int> reconstruit_solution(int j, const vector<vector<pair<double,int>>>& tab); 
 
-    vector<int> prog_dyn_sac(int j); 
+    vector<int> prog_dyn_sac(int j, const vector<double>& duales, const vector<vector<double>>& distances); 
 
     vector<double> couts_reduits_j(int j, const vector<double>& duales); 
 
