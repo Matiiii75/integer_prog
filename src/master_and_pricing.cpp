@@ -269,6 +269,16 @@ vector<int> modele::prog_dyn_sac(int j) {
 }
 
 
+vector<double> modele::couts_reduits_j(int j, const vector<double>& duales) {
+
+    vector<double> cr(inst.C); 
+    for(int i = 0; i < inst.C; ++i) {
+        cr[i] = dist(inst, i, j) - duales[i]; 
+    }
+
+    return cr; 
+}
+
 
 // FONCTION TEST AMELIORATION PROG DYN 
 vector<int> modele::prog_dyn_TEST(int j, const vector<double>& Couts_reduits) {
@@ -360,20 +370,10 @@ void modele::gen_col_DP_TEST() {
 
         // récup duales
         vector<double> duales = duales_des_clients(); 
+        vector<vector<int>> col_a_ajouter;
 
-        // debug
-        for(double& d : duales) cout << d << " "; 
-        cout << endl;
-
-        vector<vector<int>> col_a_ajouter; 
         for(int j = 0; j < inst.F; ++j) {
-
-            // calcul couts réduits 
-            vector<double> cr(inst.C); 
-            for(int i = 0; i < inst.C; ++i) {
-                cr[i] = dist(inst, i, j) + duales[i]; 
-            }
-
+            vector<double> cr = couts_reduits_j(j, duales); 
             auto col = prog_dyn_TEST(j, cr); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             col_a_ajouter.push_back(col); 
