@@ -393,6 +393,7 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
         }
     }
 
+    cout << "here FINAL" << endl;
     vector<int> solution; 
     if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
         return reconstruit_solution_TEST(j, liaisons, tableau); 
