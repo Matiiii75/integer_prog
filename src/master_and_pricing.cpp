@@ -365,10 +365,10 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     vector<int> solution; 
 
     // debug 
-    cout << "SOLUTION : " << endl;
+    cout << "SOLUTION.size() : " << solution.size() << endl;
     for(int & i : solution) cout << solution[i] << " "; 
     cout << endl;
-    
+
     if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
         return reconstruit_solution_TEST(j, liaisons, tableau); 
     } 
@@ -389,18 +389,12 @@ void modele::gen_col_DP_TEST() {
             matrice_distances[i][j] = dist(inst,i,j); 
         }
     }
-    
-    // debug 
-    cout << "avant while ok" << endl;
 
     while(true) {   
         bool a_ajouter = false;  
         vector<double> duales = duales_des_clients(); 
         for(int j = 0; j < inst.F; ++j) {
-            // debug 
-            cout << "dans boucle for avec j = " << j << endl;
             auto col = prog_dyn_TEST(j, duales, matrice_distances); 
-            cout << "j2 = " << j << endl;
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajouter = true; 
