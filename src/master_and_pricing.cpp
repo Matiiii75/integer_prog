@@ -311,7 +311,7 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
             continue; // i pas dans sol
         }
         else {
-            solution[liaisons[i-1]]++;
+            solution[liaisons[i-1]+1]++;
             c_courant = pred;  
         }
     }
