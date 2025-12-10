@@ -116,13 +116,13 @@ ostream& operator<<(ostream& out, const Instance& inst) {
     inst.p <<  "| U:" << inst.U << endl;
     
     for(int i = 0; i < inst.C; ++i) { // Affichage clients
-        out << "client i:" << i << "-> (" << inst.loc_client[i].x << "," << inst.loc_client[i].y; 
+        out << "client i:" << i << "-> (" << inst.loc_client[i].x << "," << inst.loc_client[i].y << ")"; 
         out << "-> demande:" << inst.dc[i]; 
         out << endl;
     }
 
     for(int i = 0; i < inst.F; ++i) { // Affichage entrepots
-        out << "entr f:" << i << "-> (" << inst.loc_f[i].x << "," << inst.loc_f[i].y; 
+        out << "entr f:" << i << "-> (" << inst.loc_f[i].x << "," << inst.loc_f[i].y << ")"; 
         out << "-> capacity:" << inst.uf[i]; 
         out << endl;
     }
@@ -202,52 +202,3 @@ double dist(const Instance &inst, int i, int j) {
 
     return sqrt(x*x + y*y);
 } 
-
-
-
-// int main(int argc, char* argv[]) {
-
-//     // Instance inst; 
-
-//     // ifstream file(argv[1]); 
-//     // if (file) {
-//     //     file >> inst; 
-//     // }
-
-//     // cout << inst; 
-//     /*
-//     Solution sol; 
-//     ifstream file(argv[1]); 
-
-//     if(file.is_open()) {
-//         file >> sol; 
-//     }
-
-//     cout << sol; 
-//     */
-
-//     Instance inst; 
-//     ifstream file(argv[1]); 
-//     if(file.is_open()) {
-//         file >> inst; 
-//     }
-//     cout << "affichage inst :" << endl;
-//     cout << inst; 
-//     cout << "dessin en cours" << endl;
-//     inst.dessine_inst(); 
-
-//     Solution sol; 
-//     ifstream file2(argv[2]); 
-//     if(file2.is_open()) {
-//         file2 >> sol; 
-//     }
-
-//     inst.dessine_sol(sol); 
-
-//     double obj_value; 
-//     obj_value = inst.checker(sol); 
-
-//     cout << "obj_value :" << obj_value << endl;
-
-//     return 0; 
-//}

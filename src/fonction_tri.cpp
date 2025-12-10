@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include "operators.hpp"
 
 using namespace std; 
 
@@ -15,6 +16,8 @@ using namespace std;
 // il suffit de set nb_a_conserver à inst.C
 vector<pair<int,int>> trie_p_plus_grands(int nb_a_conserver, const vector<int>& vec_a_trier) {
     
+    cout << "trie_p_plus_grands" << endl;
+
     vector<int> copie = vec_a_trier; 
     vector<int> indexs; 
     for(int i = 0; i < (int)copie.size(); ++i) indexs.push_back(i); 
@@ -57,8 +60,10 @@ vector<pair<int,int>> trie_p_plus_grands(int nb_a_conserver, const vector<int>& 
 
 vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int>> demandes_tries, vector<pair<int,int>> cap_tries) {
 
+    cout << "entree create_colonne_set" << endl;
+
     vector<vector<int>> ens_col; 
-    for(int j = 0; j < p; ++p) {
+    for(int j = 0; j < p; ++j) {
         vector<int> col(nb_client+1, 0); // créer la colonne
         col[0] = cap_tries[j].second; // lui attribuer l'entrepot correct
         ens_col.push_back(col); // l'ajouter à l'ensemble
@@ -79,21 +84,79 @@ vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int
     return ens_col; 
 }
 
-int main() {
 
-    vector<int> vec_a_trier = {100,87,17,213,2872,2,193,92,827,9,10,9281}; 
-    int nb_a_conserver = ceil(vec_a_trier.size()); 
-    // avant 
-    
-    cout << "p : " << nb_a_conserver << endl;
-    cout << "avant : " << endl;
-    cout << "V : "; 
-    for(int & i : vec_a_trier) cout << i << " "; 
-    cout << endl << "I : "; 
-    for(int i = 0; i < (int)vec_a_trier.size(); ++i) cout << i << " "; 
+vector<vector<int>> get_first_col(const Instance& inst) {
+
+    cout << "entree get_first_col" << endl;
+
+    vector<pair<int,int>> u_tries = trie_p_plus_grands(inst.p, inst.uf); 
+    vector<pair<int,int>> d_tries = trie_p_plus_grands(inst.C, inst.dc); 
+
+    vector<vector<int>> first_col; 
+    first_col = create_colonne_set(inst.p, inst.C, d_tries, u_tries); 
+
+    return first_col; 
+}
+
+
+int main(int argc, char* argv[]) {
+
+    Instance inst; 
+    ifstream file(argv[1]); 
+    if(file.is_open()) file >> inst; 
+    else cerr << "error opening file" << endl;
+
+    cout << inst; 
+
+    vector<vector<int>> cols_naive;  
+    cols_naive = get_first_col(inst); 
+
+    cout << "affichage first_col : " << endl;
+    for(int i = 0; i < (int)cols_naive.size(); ++i) {
+        cout << "["; 
+        for(int j = 0; j < (int)cols_naive[i].size(); ++j) {
+            
+            cout << cols_naive[i][j] << " "; 
+
+        }
+        cout << "]" << endl;
+    }
+
+
+
+    // VERIFIE QUE LES CLIENTS SONT TOUS ASSIGNES 
+    vector<int> verif_ok(inst.C,-1); 
+    for(int i = 0; i < (int)cols_naive.size(); ++i) {
+        for(int j = 0; j < (int)cols_naive[i].size(); ++j) {
+            
+            if(j != 0 && cols_naive[i][j]) verif_ok[j-1] = cols_naive[i][0]; 
+
+        }
+    }   
+
+    cout << "verif_ok : " << endl;
+    for(int& i : verif_ok) cout << i << " "; 
     cout << endl;
-
-    vector<pair<int,int>> recup_sol = trie_p_plus_grands(nb_a_conserver, vec_a_trier); 
-
+    
     return 0; 
 }
+
+
+// int main() {
+
+//     vector<int> vec_a_trier = {100,87,17,213,2872,2,193,92,827,9,10,9281}; 
+//     int nb_a_conserver = ceil(vec_a_trier.size()); 
+//     // avant 
+    
+//     cout << "p : " << nb_a_conserver << endl;
+//     cout << "avant : " << endl;
+//     cout << "V : "; 
+//     for(int & i : vec_a_trier) cout << i << " "; 
+//     cout << endl << "I : "; 
+//     for(int i = 0; i < (int)vec_a_trier.size(); ++i) cout << i << " "; 
+//     cout << endl;
+
+//     vector<pair<int,int>> recup_sol = trie_p_plus_grands(nb_a_conserver, vec_a_trier); 
+
+//     return 0; 
+// }

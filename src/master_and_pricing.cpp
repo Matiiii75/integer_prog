@@ -281,7 +281,6 @@ modele::~modele() {
 }
 
 
-
 /* ########### DEBUT PARTIE TEST D AMELIORATION PROG DYN ########### */
 
 // fonction qui reconstruit la solution trouvée par le programme dynamique 
@@ -398,35 +397,27 @@ void modele::gen_col_DP_TEST() {
 /* ########### FIN PARTIE TEST D AMELIORATION PROG DYN ########### */
 
 
-vector<vector<int>> modele::init_sol() {
 
-    //commencer par garder les p + grands uf par ordre décroissant
-    vector<int> p_plus_grand_uf(inst.p); 
-     
+// int main(int argc, char* argv[]) {
 
-}
+//     Instance inst; 
+//     ifstream file(argv[1]); 
+//     if(file.is_open()) file >> inst; 
+//     else cerr << "erreur ouverture fichier" << endl;
 
-
-int main(int argc, char* argv[]) {
-
-    Instance inst; 
-    ifstream file(argv[1]); 
-    if(file.is_open()) file >> inst; 
-    else cerr << "erreur ouverture fichier" << endl;
-
-    modele m(inst);
-    char choix = argv[2][0];  
-    if(choix=='1') {
-        m.gen_col_DP();
-    } 
-    if(choix=='0') {
-        m.gen_col(); 
-    }  
-    if(choix=='2') {
-        m.gen_col_DP_TEST(); 
-    }
+//     modele m(inst);
+//     char choix = argv[2][0];  
+//     if(choix=='1') {
+//         m.gen_col_DP();
+//     } 
+//     if(choix=='0') {
+//         m.gen_col(); 
+//     }  
+//     if(choix=='2') {
+//         m.gen_col_DP_TEST(); 
+//     }
     
-    cout << "relaxation LP maitre : " << m.obj() << endl;
+//     cout << "relaxation LP maitre : " << m.obj() << endl;
 
-    return 0; 
-}
+//     return 0; 
+// }
