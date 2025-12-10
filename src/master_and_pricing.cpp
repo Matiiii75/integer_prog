@@ -398,26 +398,29 @@ void modele::gen_col_DP_TEST() {
 
 
 
-// int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
-//     Instance inst; 
-//     ifstream file(argv[1]); 
-//     if(file.is_open()) file >> inst; 
-//     else cerr << "erreur ouverture fichier" << endl;
+    Instance inst; 
+    ifstream file(argv[1]); 
+    if(file.is_open()) file >> inst; 
+    else cerr << "erreur ouverture fichier" << endl;
 
-//     modele m(inst);
-//     char choix = argv[2][0];  
-//     if(choix=='1') {
-//         m.gen_col_DP();
-//     } 
-//     if(choix=='0') {
-//         m.gen_col(); 
-//     }  
-//     if(choix=='2') {
-//         m.gen_col_DP_TEST(); 
-//     }
+    // on génère des colonnes initiales : ca fonction grv bien et ça améliore le temps de facteur 3 !!!
+    vector<vector<int>> colonnes_initiales = get_first_col(inst); 
+
+    modele m(inst, colonnes_initiales);
+    char choix = argv[2][0];  
+    if(choix=='1') {
+        m.gen_col_DP();
+    } 
+    if(choix=='0') {
+        m.gen_col(); 
+    }  
+    if(choix=='2') {
+        m.gen_col_DP_TEST(); 
+    }
     
-//     cout << "relaxation LP maitre : " << m.obj() << endl;
+    cout << "relaxation LP maitre : " << m.obj() << endl;
 
-//     return 0; 
-// }
+    return 0; 
+}
