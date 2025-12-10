@@ -1,7 +1,4 @@
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include "operators.hpp"
+#include "glouton_col.hpp"
 
 using namespace std; 
 
