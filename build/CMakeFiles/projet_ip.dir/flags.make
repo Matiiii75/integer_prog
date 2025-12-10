@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/opt/local/stow/gurobi1203/linux64/include -I/net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog/include
+CXX_INCLUDES = -I/opt/local/stow/gurobi1203/linux64/include -I/autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/include
 
 CXX_FLAGS = -std=gnu++14
 

@@ -1,4 +1,4 @@
-# Install script for directory: /net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog
+# Install script for directory: /autofs/unitytravail/travail/mperiat/M2_S1/integer_prog
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,7 +45,7 @@ endif()
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog/build/install_local_manifest.txt"
+  file(WRITE "/autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
 if(CMAKE_INSTALL_COMPONENT)
@@ -61,6 +61,6 @@ else()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog/build/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "/autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
