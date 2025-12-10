@@ -281,8 +281,8 @@ modele::~modele() {
 }
 
 
-/* ########### DEBUT PARTIE TEST D AMELIORATION PROG DYN ########### */
 
+/* ########### DEBUT PARTIE TEST D AMELIORATION PROG DYN ########### */
 
 // fonction qui reconstruit la solution trouvée par le programme dynamique 
 vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab) {
@@ -318,7 +318,7 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     vector<int> poids; 
     vector<double> profits;
 
-    vector<int> liaisons; 
+    vector<int> liaisons; // liaisons est un vecteur qui permet de se souvenir des indices d'origine des clients (car je calle tout a gauche)
     for(int i = 0; i < inst.C; ++i) { // si cr < 0 pour client i, alors on va le considérer dans le sac à dos; 
         if(distances[i][j] - duales[i] < 0) {
             liaisons.push_back(i); // on retiens l'index du client i 
@@ -396,8 +396,6 @@ void modele::gen_col_DP_TEST() {
 }
 
 /* ########### FIN PARTIE TEST D AMELIORATION PROG DYN ########### */
-
-
 
 
 int main(int argc, char* argv[]) {
