@@ -8,7 +8,6 @@ using namespace std;
 // un vecteur<paires<int,int>> new_vec où new_vec[i].first : capacité max de l'entrepot new_vec[i].second
 // et evidement, new_vec[i] <= new_vec[i+1] pour tout i 
 // nb_a_conserver doit etre set à inst.p
-
 // en fait, on peut aussi l'utiliser pour trier les demandes des clients (par ordre décroissant aussi)
 // il suffit de set nb_a_conserver à inst.C
 vector<pair<int,int>> trie_p_plus_grands(int nb_a_conserver, const vector<int>& vec_a_trier) {
@@ -80,7 +79,6 @@ vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int
 
     return ens_col; 
 }
-
 
 vector<vector<int>> get_first_col(const Instance& inst) {
 

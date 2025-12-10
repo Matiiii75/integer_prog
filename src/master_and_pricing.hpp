@@ -1,7 +1,9 @@
 #pragma once 
 
 #include "operators.hpp"
+#include "glouton_col.hpp"
 #include "gurobi_c++.h"
+
 #include <sstream> 
 #include <chrono> 
 
@@ -20,9 +22,8 @@ struct modele {
 
     // colonnes 
     int taille_col; 
-    vector<vector<int>> cols; 
 
-    modele(const Instance& inst_);
+    modele(const Instance& inst_, const vector<vector<int>>& cols);
 
     double calcul_cout_colonne(const vector<int>& colonne);
 
@@ -60,9 +61,6 @@ struct modele {
     void gen_col_DP(); 
 
     ~modele();
-
-    // test en dessous
-    vector<vector<int>> init_sol(); 
 
 }; 
 

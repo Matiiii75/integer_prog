@@ -2,31 +2,40 @@
 
 using namespace std; 
 
-modele::modele(const Instance& inst_) : inst(inst_) {
+modele::modele(const Instance& inst_, const vector<vector<int>>& cols) : inst(inst_) {
 
     taille_col = inst.C + inst.F; 
-        
     // environnement 
-
     env = new GRBEnv(true); 
     env->set(GRB_IntParam_LogToConsole, 0); // désactive les logs
     env->start(); 
     model = new GRBModel(*env); 
-     
-    vector<GRBVar> t(inst.C); 
-    // contrainte pas plus de p entrepot
-    max_facility = model->addConstr(0.0, GRB_LESS_EQUAL, inst.p); 
 
-    // tout client servis 
+    // DECLARATION DES CONTRAINTES
+    // contrainte pas plus de p entrepot
+    max_facility = model->addConstr(0.0, GRB_LESS_EQUAL, inst.p);
+    // contraintes client 
+    tout_client_assigne.resize(inst.C);
     for(int i = 0; i < inst.C; ++i) {
-        t[i] = model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS); 
-        tout_client_assigne.push_back(model->addConstr(t[i] == 1)); 
+        tout_client_assigne[i] = model->addConstr(0.0, GRB_EQUAL, 1.0);
+    }
+
+    if(cols.empty()) { // si on a pas généré de colonnes initiales -> BIG M
+        // on les ajoutes pr chaque contrainte 
+        for(int i = 0; i < inst.C; ++i) {
+            GRBColumn col; 
+            col.addTerm(1.0, tout_client_assigne[i]); 
+            model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, col);  
+        }
+    }
+    else 
+    {   // si on en a généré, on les ajoute
+        for(auto& col : cols) ajoute_colonne(col); 
     }
 
     model->optimize(); 
 
 }
-
 
 // étant donné une colonne (entrepot_ouvert, c1, ... , c|C|), renvoie son cout dans l'obj
 double modele::calcul_cout_colonne(const vector<int>& colonne) {
@@ -40,7 +49,6 @@ double modele::calcul_cout_colonne(const vector<int>& colonne) {
     return val_col; 
 }
 
-
 // prend en entrée colonne_du_pricing
 void modele::ajoute_colonne(vector<int> colonne_du_pricing) {
 
@@ -53,21 +61,17 @@ void modele::ajoute_colonne(vector<int> colonne_du_pricing) {
     // ajoute la variable a la contrainte sur l'affectation de chaque client 
     for(int i = 1; i < inst.C+1; ++i) {
         col.addTerm(colonne_du_pricing[i], tout_client_assigne[i-1]); 
-        /* 
-        col.addTerm (X, Y[i]) est la commande qui dit : 
-        la nouvelle variable ajoutée aura un coefficient de X dans la contrainte Y[i]
-        */
+        // col.addTerm (X, Y[i]) est la commande qui dit : 
+        // la nouvelle variable ajoutée aura un coefficient de X dans la contrainte Y[i]
     }
 
     model->addVar(0.0, INFINITY, distance_totale, GRB_CONTINUOUS, col); 
 }
 
-
 // récupérer val duale theta associée a ctrt <= p
 double modele::theta() {
     return max_facility.get(GRB_DoubleAttr_Pi); 
 }
-
 
 // récupérer les Pi_i (val duale associées aux ctrt d'affectations pr chaque client)
 vector<double> modele::duales_des_clients() {
@@ -87,12 +91,10 @@ void modele::optimize() {
     model->optimize(); 
 }
 
-
 // récupérer l'obj
 double modele::obj() {
     return model->get(GRB_DoubleAttr_ObjVal); 
 }
-
 
 // résoud le pricing. Prends en entrée j : la facility considérée. Renvoie une colonne
 vector<int> modele::pricing(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
@@ -123,7 +125,6 @@ vector<int> modele::pricing(int j, const vector<double>& duales, const vector<ve
 
     return colonne; 
 }
-
 
 // fonction qui reconstruit la solution trouvée par le programme dynamique 
 vector<int> modele::reconstruit_solution(int j, const vector<vector<pair<double,int>>>& tab) {
@@ -360,7 +361,6 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     return {};  // sinon, pas de vecteur
 
 }
-
 
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP_TEST() {
