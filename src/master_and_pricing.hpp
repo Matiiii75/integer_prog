@@ -61,5 +61,8 @@ struct modele {
 
     ~modele();
 
+    // test en dessous
+    vector<vector<int>> init_sol(); 
+
 }; 
 

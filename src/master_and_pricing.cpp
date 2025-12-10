@@ -398,6 +398,15 @@ void modele::gen_col_DP_TEST() {
 /* ########### FIN PARTIE TEST D AMELIORATION PROG DYN ########### */
 
 
+vector<vector<int>> modele::init_sol() {
+
+    //commencer par garder les p + grands uf par ordre décroissant
+    vector<int> p_plus_grand_uf(inst.p); 
+     
+
+}
+
+
 int main(int argc, char* argv[]) {
 
     Instance inst; 
