@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.14)
 project(projet_gopp)
 
 set(CMAKE_CXX_STANDARD 14)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -O2 -pg")
+ 
 #------------------- CREATION DES VARIABLES POUR LA BIBLIOTHEQUE GUROBI -----------------------
 message(STATUS "CMAKE_SYSTEM_NAME : ${CMAKE_SYSTEM_NAME}")
 

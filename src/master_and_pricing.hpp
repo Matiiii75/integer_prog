@@ -9,6 +9,11 @@
 
 using namespace std; 
 
+struct Duales {
+    vector<double> duales_des_clients; 
+    double theta; 
+}; 
+
 struct modele {
 
     GRBEnv* env; 
@@ -37,28 +42,31 @@ struct modele {
 
     double obj();
 
-    vector<int> pricing(int j, const vector<double>& duales, const vector<vector<double>>& distances);
+    vector<int> pricing(int j, const Duales& donnees_duales, const vector<vector<double>>& distances);
 
     void gen_col();
 
     vector<int> reconstruit_solution(int j, const vector<vector<pair<double,int>>>& tab); 
 
-    vector<int> prog_dyn_sac(int j, const vector<double>& duales, const vector<vector<double>>& distances); 
+    vector<int> prog_dyn_sac(int j, const Duales& donnees_duales, const vector<vector<double>>& distances); 
 
-    vector<double> couts_reduits_j(int j, const vector<double>& duales); 
-
+    vector<double> couts_reduits_j(int j, const Duales& donnees_duales); 
 
     // DEBUT IMPLE TEST PROG DYN
 
     vector<int> reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab); 
 
-    vector<int> prog_dyn_TEST(int j, const vector<double>& duales, const vector<vector<double>>& distances); 
+    vector<int> prog_dyn_TEST(int j, const Duales& donnees_duales, const vector<vector<double>>& distances); 
 
     void gen_col_DP_TEST(); 
 
-    // DEBUT IMPLE TEST PROG DYN
+    // FIN IMPLE TEST PROG DYN
 
     void gen_col_DP(); 
+
+    void update_sep(Duales& sep, const Duales& in, const Duales& out, double alpha); 
+
+    void gen_col_stabilization(); 
 
     ~modele();
 

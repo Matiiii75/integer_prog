@@ -85,10 +85,13 @@ vector<double> modele::duales_des_clients() {
     return duales; 
 }
 
+long long timeOptim = 0;
 
 void modele::optimize() {
     model->set(GRB_IntParam_Method, 0); 
+    timeOptim -= clock();
     model->optimize(); 
+    timeOptim += clock();
 }
 
 // récupérer l'obj
@@ -97,14 +100,14 @@ double modele::obj() {
 }
 
 // résoud le pricing. Prends en entrée j : la facility considérée. Renvoie une colonne
-vector<int> modele::pricing(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
+vector<int> modele::pricing(int j, const Duales& donnees_duales, const vector<vector<double>>& distances) {
 
     GRBModel pricing_model(env); 
     GRBLinExpr contraintes;
     vector<GRBVar> x; 
 
     for(int i = 0; i < inst.C; ++i) {
-        x.push_back(pricing_model.addVar(0.0, 1.0, distances[i][j] - duales[i], GRB_INTEGER));
+        x.push_back(pricing_model.addVar(0.0, 1.0, distances[i][j] - donnees_duales.duales_des_clients[i], GRB_INTEGER));
         contraintes += x.back()*inst.dc[i]; 
     }
 
@@ -114,7 +117,7 @@ vector<int> modele::pricing(int j, const vector<double>& duales, const vector<ve
     double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
 
     // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
-    if(pricing_obj - theta() >= -1e-6) return {}; 
+    if(pricing_obj - donnees_duales.theta >= -1e-6) return {}; 
 
     vector<int> colonne; // on créer la colonne 
     colonne.push_back(j); 
@@ -156,7 +159,7 @@ vector<int> modele::reconstruit_solution(int j, const vector<vector<pair<double,
 }
 
 // fonction qui calcule la valeur optimale du pricing par DP. il s'agit d'un sac a dos binaire 
-vector<int> modele::prog_dyn_sac(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
+vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales, const vector<vector<double>>& distances) {
 
     // données du pb 
     int taille_sac = inst.uf[j]; 
@@ -165,7 +168,7 @@ vector<int> modele::prog_dyn_sac(int j, const vector<double>& duales, const vect
     vector<double> profits(nb_obj);  
 
     for(int i = 0; i < nb_obj; ++i) { // il faut calculer les profits; pour chaque objet, ils valent : pi_i - dist(i,j)
-        profits[i] = -distances[i][j] + duales[i]; 
+        profits[i] = -distances[i][j] + donnees_duales.duales_des_clients[i]; 
     }
 
     vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1)); // tableau prog dyn
@@ -194,7 +197,7 @@ vector<int> modele::prog_dyn_sac(int j, const vector<double>& duales, const vect
     }
 
     vector<int> solution; 
-    if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
+    if(-tableau[nb_obj][taille_sac].first - donnees_duales.theta < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
         return reconstruit_solution(j, tableau); 
     } 
     
@@ -202,11 +205,11 @@ vector<int> modele::prog_dyn_sac(int j, const vector<double>& duales, const vect
 }
 
 
-vector<double> modele::couts_reduits_j(int j, const vector<double>& duales) {
+vector<double> modele::couts_reduits_j(int j, const Duales& donnees_duales) {
 
     vector<double> cr(inst.C); 
     for(int i = 0; i < inst.C; ++i) {
-        cr[i] = dist(inst, i, j) - duales[i]; 
+        cr[i] = dist(inst, i, j) - donnees_duales.duales_des_clients[i]; 
     }
 
     return cr; 
@@ -224,11 +227,13 @@ void modele::gen_col() {
         }
     }
 
+    Duales donnees_duales; // permettra de stocker les duales; 
     while(true) {   
         bool a_ajoute = false; 
-        vector<double> duales = duales_des_clients();
+        donnees_duales.duales_des_clients = duales_des_clients();
+        donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {  
-            auto col = pricing(j, duales, matrice_distances); 
+            auto col = pricing(j, donnees_duales, matrice_distances); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
             ajoute_colonne(col); // on l'ajoute
             a_ajoute = true; // on retient 
@@ -239,7 +244,7 @@ void modele::gen_col() {
     }
 
     auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
     cout << duration.count() << endl;
 }
 
@@ -255,11 +260,13 @@ void modele::gen_col_DP() {
         }
     }
 
+    Duales donnees_duales; 
     while(true) {   
         bool a_ajouter = false;  
-        vector<double> duales = duales_des_clients(); 
+        donnees_duales.duales_des_clients = duales_des_clients();
+        donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {
-            auto col = prog_dyn_sac(j, duales, matrice_distances); 
+            auto col = prog_dyn_sac(j, donnees_duales, matrice_distances); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajouter = true; 
@@ -270,7 +277,7 @@ void modele::gen_col_DP() {
     }
 
     auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
     cout << duration.count() << endl;
 
 }
@@ -311,7 +318,7 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
 }
 
 
-vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vector<vector<double>>& distances) {
+vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales, const vector<vector<double>>& distances) {
 
     // données du pb 
     int taille_sac = inst.uf[j];  
@@ -320,9 +327,9 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
 
     vector<int> liaisons; // liaisons est un vecteur qui permet de se souvenir des indices d'origine des clients (car je calle tout a gauche)
     for(int i = 0; i < inst.C; ++i) { // si cr < 0 pour client i, alors on va le considérer dans le sac à dos; 
-        if(distances[i][j] - duales[i] < 0) {
+        if(distances[i][j] - donnees_duales.duales_des_clients[i] < 0) {
             liaisons.push_back(i); // on retiens l'index du client i 
-            profits.push_back(-distances[i][j] + duales[i]); // inversion signes car max du knapsack
+            profits.push_back(-distances[i][j] + donnees_duales.duales_des_clients[i]); // inversion signes car max du knapsack
             poids.push_back(inst.dc[i]); // on retiens le poids de i 
         }
     }
@@ -354,7 +361,7 @@ vector<int> modele::prog_dyn_TEST(int j, const vector<double>& duales, const vec
     }
 
     vector<int> solution; 
-    if(-tableau[nb_obj][taille_sac].first - theta() < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
+    if(-tableau[nb_obj][taille_sac].first - donnees_duales.theta < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
         return reconstruit_solution_TEST(j, liaisons, tableau); 
     } 
 
@@ -374,11 +381,13 @@ void modele::gen_col_DP_TEST() {
         }
     }
 
+    Duales donnees_duales; 
     while(true) {   
         bool a_ajouter = false;  
-        vector<double> duales = duales_des_clients(); 
+        donnees_duales.duales_des_clients = duales_des_clients();
+        donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {
-            auto col = prog_dyn_TEST(j, duales, matrice_distances); 
+            auto col = prog_dyn_TEST(j, donnees_duales, matrice_distances); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajouter = true; 
@@ -389,12 +398,102 @@ void modele::gen_col_DP_TEST() {
     }
 
     auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
     cout << duration.count() << endl;
 
 }
 
 /* ########### FIN PARTIE TEST D AMELIORATION PROG DYN ########### */
+
+
+/* ########### IMPLE SEPARATION ########### */
+
+
+void modele::update_sep(Duales& sep, const Duales& in, const Duales& out, double alpha) {
+
+    sep.theta = alpha*in.theta + (1-alpha)*out.theta; 
+    for(int i = 0; i < inst.C; ++i) {
+        sep.duales_des_clients[i] = alpha*in.duales_des_clients[i] + (1-alpha)*out.duales_des_clients[i]; 
+    }
+
+}
+
+
+// il va falloir implémenter un algorithme de stabilisation. Je vais utiliser le concept in-out. 
+/*
+Pseudo - code : 
+solution duale réalisable initiale (in) = (0,...,0); 
+out <-- résoudre le master avec mes colonnes initiales; 
+
+TANT QUE : out n'est pas réalisable (ie. cas où les duales renvoyées par master ont permis a pricing de renvoyer une colonne)
+    _sep = alpha*in + (1-alpha)out
+    _si sep est réalisable : (ie. on a pas renvoyé de colonnes avec duales = sep)
+        _ in <-- sep
+    _sinon (cas où pricing renvoie une colonne)
+        _ajoute la colonne
+        _met a jour out (ie. out <-- duales obtenues par resolution master apres ajout)
+*/
+void modele::gen_col_stabilization() {
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); // calcul distances préalable
+    for(int i = 0; i < inst.C; ++i) {
+        for(int j = 0; j < inst.F; ++j) {
+            matrice_distances[i][j] = dist(inst,i,j); 
+        }
+    }
+
+    Duales in; 
+    in.duales_des_clients.resize(inst.C); 
+    Duales sep; 
+    sep.duales_des_clients.resize(inst.C); 
+
+    double alpha = 0.9; // alpha (que je réglerais moi meme)
+
+    Duales out; 
+    while(true) { // tant que out n'est pas réalisable 
+
+        bool a_ajoute = false;  
+        out.duales_des_clients = duales_des_clients();
+        out.theta = theta();
+        
+        for(int j = 0; j < inst.F; ++j) { // résolution des j pricings 
+            auto col = prog_dyn_TEST(j, out, matrice_distances); 
+            if(col.empty()) continue; // si colonne vide, on l'ajoute pas
+            ajoute_colonne(col); 
+            a_ajoute = true; 
+        }
+
+        if(!a_ajoute) break; // si out est réalisable -> sol optimale 
+
+        while(true) { // tant que sep est réalisable (ie on a pas renvoyé de colonne)
+ 
+            update_sep(sep, in, out, alpha); 
+        
+            bool a_ajoute_sep = false; 
+            for(int j = 0; j < inst.F; ++j) { // on regarde si sep est réalisable 
+                auto col = prog_dyn_TEST(j, sep, matrice_distances);
+                if(col.empty()) continue; // si colonne vide, on l'ajoute pas
+                ajoute_colonne(col); 
+                a_ajoute_sep = true;  
+            }
+            
+            if(!a_ajoute_sep) { // si on a pas ajouté 
+                in.duales_des_clients = sep.duales_des_clients; // in = sep
+                in.theta = sep.theta;  
+            } 
+            else break; // si on a ajouté, on doit retourner calculer out
+        }
+
+        optimize(); 
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
+    cout << duration.count() << endl;
+
+}
 
 
 
@@ -419,8 +518,12 @@ int main(int argc, char* argv[]) {
     if(choix=='2') {
         m.gen_col_DP_TEST(); 
     }
+    if(choix=='3') {
+        m.gen_col_stabilization(); 
+    }
     
     cout << "relaxation LP maitre : " << m.obj() << endl;
+    cout << "temps gurobi : " << timeOptim / (double)CLOCKS_PER_SEC << endl; 
 
     return 0; 
 }

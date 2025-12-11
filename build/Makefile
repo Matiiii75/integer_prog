@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /autofs/unitytravail/travail/mperiat/M2_S1/integer_prog
+CMAKE_SOURCE_DIR = /net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build
+CMAKE_BINARY_DIR = /net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/CMakeFiles /autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog/build/CMakeFiles /net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /autofs/unitytravail/travail/mperiat/M2_S1/integer_prog/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /net/cremi/mperiat/Bureau/espaces/travail/M2_S1/integer_prog/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
