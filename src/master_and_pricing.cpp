@@ -39,6 +39,10 @@ modele::modele(const Instance& inst_, const vector<vector<int>>& cols) : inst(in
 
 }
 
+
+/* ---------------- PARTIE UTILITAIRES ---------------- */
+
+
 // étant donné une colonne (entrepot_ouvert, c1, ... , c|C|), renvoie son cout dans l'obj
 double modele::calcul_cout_colonne(const vector<int>& colonne) {
 
@@ -141,32 +145,6 @@ vector<int> modele::pricing(int j, const Duales& donnees_duales) {
     return colonne; 
 }
 
-// boucle pour la génération de colonne
-void modele::gen_col() {
-
-    auto start = std::chrono::high_resolution_clock::now();   
-    Duales donnees_duales; // permettra de stocker les duales; 
-
-    while(true) {   
-        bool a_ajoute = false; 
-        donnees_duales.duales_des_clients = duales_des_clients();
-        donnees_duales.theta = theta(); 
-        for(int j = 0; j < inst.F; ++j) {  
-            auto col = pricing(j, donnees_duales); 
-            if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
-            ajoute_colonne(col); // on l'ajoute
-            a_ajoute = true; // on retient 
-        }
-
-        if(!a_ajoute) break; 
-        optimize(); 
-    }
-
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
-    cout << duration.count() << endl;
-}
-
 // destructeur modele 
 modele::~modele() {
     delete env; 
@@ -174,7 +152,7 @@ modele::~modele() {
 }
 
 
-/* ########### PARTIE PROGRAMMATION DYNAMIQUE ########### */
+/* ---------------- PARTIE PROGRAMMATION DYNAMIQUE ---------------- */
 
 // fonction qui reconstruit la solution trouvée par le programme dynamique 
 vector<int> modele::reconstruit_solution(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab) {
@@ -258,6 +236,35 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
 
 }
 
+/* ---------------- PARTIE GENERATION COL ---------------- */
+
+
+// boucle pour la génération de colonne
+void modele::gen_col() {
+
+    auto start = std::chrono::high_resolution_clock::now();   
+    Duales donnees_duales; // permettra de stocker les duales; 
+
+    while(true) {   
+        bool a_ajoute = false; 
+        donnees_duales.duales_des_clients = duales_des_clients();
+        donnees_duales.theta = theta(); 
+        for(int j = 0; j < inst.F; ++j) {  
+            auto col = pricing(j, donnees_duales); 
+            if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
+            ajoute_colonne(col); // on l'ajoute
+            a_ajoute = true; // on retient 
+        }
+
+        if(!a_ajoute) break; 
+        optimize(); 
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
+    cout << duration.count() << endl;
+}
+
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP() {
 
@@ -286,7 +293,7 @@ void modele::gen_col_DP() {
 }
 
 
-/* ########### IMPLE SEPARATION ########### */
+ /* ---------------- PARTIE GENERATION STABILISATION ---------------- */
 
 
 void modele::update_sep(Duales& sep, const Duales& in, const Duales& out, double alpha) {
@@ -299,7 +306,6 @@ void modele::update_sep(Duales& sep, const Duales& in, const Duales& out, double
 }
 
 
-// il va falloir implémenter un algorithme de stabilisation. Je vais utiliser le concept in-out. 
 /*
 Pseudo - code : 
 solution duale réalisable initiale (in) = (0,...,0); 
@@ -366,7 +372,6 @@ void modele::gen_col_stabilization() {
     cout << duration.count() << endl;
 
 }
-
 
 
 int main(int argc, char* argv[]) {
