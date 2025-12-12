@@ -42,7 +42,7 @@ double modele::calcul_cout_colonne(const vector<int>& colonne) {
 
     double val_col = 0; 
     for(int i = 1; i < inst.C+1; ++i) {
-        val_col += colonne[i]*dist(inst, i-1, colonne[0]); 
+        val_col += colonne[i]*matrice_distances[i-1][colonne[0]]; 
         // colonne[0] contient l'entrepot ouvert j auxquels sont associés les clients actifs
     }
 
@@ -73,6 +73,16 @@ double modele::theta() {
     return max_facility.get(GRB_DoubleAttr_Pi); 
 }
 
+void modele::calcul_distances() {
+
+    matrice_distances.resize(inst.C, vector<double>(inst.F)); 
+    for(int i = 0; i < inst.C; ++i) {
+        for(int j = 0; j < inst.F; ++j) {
+            matrice_distances[i][j] = dist(inst,i,j); 
+        }
+    }
+}
+
 // récupérer les Pi_i (val duale associées aux ctrt d'affectations pr chaque client)
 vector<double> modele::duales_des_clients() {
 
@@ -100,14 +110,14 @@ double modele::obj() {
 }
 
 // résoud le pricing. Prends en entrée j : la facility considérée. Renvoie une colonne
-vector<int> modele::pricing(int j, const Duales& donnees_duales, const vector<vector<double>>& distances) {
+vector<int> modele::pricing(int j, const Duales& donnees_duales) {
 
     GRBModel pricing_model(env); 
     GRBLinExpr contraintes;
     vector<GRBVar> x; 
 
     for(int i = 0; i < inst.C; ++i) {
-        x.push_back(pricing_model.addVar(0.0, 1.0, distances[i][j] - donnees_duales.duales_des_clients[i], GRB_INTEGER));
+        x.push_back(pricing_model.addVar(0.0, 1.0, matrice_distances[i][j] - donnees_duales.duales_des_clients[i], GRB_INTEGER));
         contraintes += x.back()*inst.dc[i]; 
     }
 
@@ -159,7 +169,7 @@ vector<int> modele::reconstruit_solution(int j, const vector<vector<pair<double,
 }
 
 // fonction qui calcule la valeur optimale du pricing par DP. il s'agit d'un sac a dos binaire 
-vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales, const vector<vector<double>>& distances) {
+vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
 
     // données du pb 
     int taille_sac = inst.uf[j]; 
@@ -168,7 +178,7 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales, const vect
     vector<double> profits(nb_obj);  
 
     for(int i = 0; i < nb_obj; ++i) { // il faut calculer les profits; pour chaque objet, ils valent : pi_i - dist(i,j)
-        profits[i] = -distances[i][j] + donnees_duales.duales_des_clients[i]; 
+        profits[i] = -matrice_distances[i][j] + donnees_duales.duales_des_clients[i]; 
     }
 
     vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1)); // tableau prog dyn
@@ -177,16 +187,20 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales, const vect
     // ----------------------- RESOLUTION PROG DYN ----------------------- 
 
     for(int i = 1; i < nb_obj + 1; ++i) { 
+
+        int poids_i = poids[i-1]; 
+        double profit_i = profits[i-1]; 
+
         for(int d = 0; d < taille_sac + 1; ++d) {
 
-            if(poids[i-1] > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
+            if(poids_i > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
             else 
             {
                 // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
-                if(tableau[i-1][d-poids[i-1]].first + profits[i-1] > tableau[i-1][d].first) {
+                if(tableau[i-1][d-poids_i].first + profit_i > tableau[i-1][d].first) {
 
-                    tableau[i][d].first = tableau[i-1][d-poids[i-1]].first + profits[i-1]; 
-                    tableau[i][d].second = d-poids[i-1];
+                    tableau[i][d].first = tableau[i-1][d-poids_i].first + profit_i; 
+                    tableau[i][d].second = d-poids_i;
 
                 }
                 else { // cas G(i,d) = G(i-1, d) en gros, pas prendre i dans le sac 
@@ -204,36 +218,20 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales, const vect
     return {};  // sinon, pas de vecteur
 }
 
-
-vector<double> modele::couts_reduits_j(int j, const Duales& donnees_duales) {
-
-    vector<double> cr(inst.C); 
-    for(int i = 0; i < inst.C; ++i) {
-        cr[i] = dist(inst, i, j) - donnees_duales.duales_des_clients[i]; 
-    }
-
-    return cr; 
-}
-
 // boucle pour la génération de colonne
 void modele::gen_col() {
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
-    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); // EST CE VRM UTILE ? 
-    for(int i = 0; i < inst.C; ++i) {
-        for(int j = 0; j < inst.F; ++j) {
-            matrice_distances[i][j] = dist(inst,i,j); 
-        }
-    }
-
+    calcul_distances(): 
     Duales donnees_duales; // permettra de stocker les duales; 
+
     while(true) {   
         bool a_ajoute = false; 
         donnees_duales.duales_des_clients = duales_des_clients();
         donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {  
-            auto col = pricing(j, donnees_duales, matrice_distances); 
+            auto col = pricing(j, donnees_duales); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
             ajoute_colonne(col); // on l'ajoute
             a_ajoute = true; // on retient 
@@ -253,20 +251,15 @@ void modele::gen_col_DP() {
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
-    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); // calcul distances préalable
-    for(int i = 0; i < inst.C; ++i) {
-        for(int j = 0; j < inst.F; ++j) {
-            matrice_distances[i][j] = dist(inst,i,j); 
-        }
-    }
-
+    calcul_distances(); 
     Duales donnees_duales; 
+
     while(true) {   
         bool a_ajouter = false;  
         donnees_duales.duales_des_clients = duales_des_clients();
         donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {
-            auto col = prog_dyn_sac(j, donnees_duales, matrice_distances); 
+            auto col = prog_dyn_sac(j, donnees_duales); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajouter = true; 
@@ -318,7 +311,7 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
 }
 
 
-vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales, const vector<vector<double>>& distances) {
+vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales) {
 
     // données du pb 
     int taille_sac = inst.uf[j];  
@@ -327,9 +320,9 @@ vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales, const vec
 
     vector<int> liaisons; // liaisons est un vecteur qui permet de se souvenir des indices d'origine des clients (car je calle tout a gauche)
     for(int i = 0; i < inst.C; ++i) { // si cr < 0 pour client i, alors on va le considérer dans le sac à dos; 
-        if(distances[i][j] - donnees_duales.duales_des_clients[i] < 0) {
+        if(matrice_distances[i][j] - donnees_duales.duales_des_clients[i] < 0) {
             liaisons.push_back(i); // on retiens l'index du client i 
-            profits.push_back(-distances[i][j] + donnees_duales.duales_des_clients[i]); // inversion signes car max du knapsack
+            profits.push_back(-matrice_distances[i][j] + donnees_duales.duales_des_clients[i]); // inversion signes car max du knapsack
             poids.push_back(inst.dc[i]); // on retiens le poids de i 
         }
     }
@@ -341,16 +334,20 @@ vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales, const vec
     // ----------------------- RESOLUTION PROG DYN ----------------------- 
     
     for(int i = 1; i < nb_obj + 1; ++i) { 
+
+        int poids_i = poids[i-1]; 
+        double profit_i = profits[i-1];
+
         for(int d = 0; d < taille_sac + 1; ++d) {
 
-            if(poids[i-1] > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
+            if(poids_i > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
             else 
             {   
                 // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
-                if(tableau[i-1][d-poids[i-1]].first + profits[i-1] > tableau[i-1][d].first) {
+                if(tableau[i-1][d-poids_i].first + profit_i > tableau[i-1][d].first) {
 
-                    tableau[i][d].first = tableau[i-1][d-poids[i-1]].first + profits[i-1]; 
-                    tableau[i][d].second = d-poids[i-1];
+                    tableau[i][d].first = tableau[i-1][d-poids_i].first + profit_i; 
+                    tableau[i][d].second = d-poids_i;
 
                 }
                 else { // cas G(i,d) = G(i-1, d) en gros, pas prendre i dans le sac 
@@ -374,20 +371,15 @@ void modele::gen_col_DP_TEST() {
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
-    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); // calcul distances préalable
-    for(int i = 0; i < inst.C; ++i) {
-        for(int j = 0; j < inst.F; ++j) {
-            matrice_distances[i][j] = dist(inst,i,j); 
-        }
-    }
-
+    calcul_distances(); 
     Duales donnees_duales; 
+    
     while(true) {   
         bool a_ajouter = false;  
         donnees_duales.duales_des_clients = duales_des_clients();
         donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {
-            auto col = prog_dyn_TEST(j, donnees_duales, matrice_distances); 
+            auto col = prog_dyn_TEST(j, donnees_duales); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajouter = true; 
@@ -437,13 +429,7 @@ void modele::gen_col_stabilization() {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    vector<vector<double>> matrice_distances(inst.C, vector<double>(inst.F)); // calcul distances préalable
-    for(int i = 0; i < inst.C; ++i) {
-        for(int j = 0; j < inst.F; ++j) {
-            matrice_distances[i][j] = dist(inst,i,j); 
-        }
-    }
-
+    calcul_distances(); 
     Duales in; 
     in.duales_des_clients.resize(inst.C); 
     Duales sep; 
@@ -459,7 +445,7 @@ void modele::gen_col_stabilization() {
         out.theta = theta();
         
         for(int j = 0; j < inst.F; ++j) { // résolution des j pricings 
-            auto col = prog_dyn_TEST(j, out, matrice_distances); 
+            auto col = prog_dyn_TEST(j, out); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajoute = true; 
@@ -473,7 +459,7 @@ void modele::gen_col_stabilization() {
         
             bool a_ajoute_sep = false; 
             for(int j = 0; j < inst.F; ++j) { // on regarde si sep est réalisable 
-                auto col = prog_dyn_TEST(j, sep, matrice_distances);
+                auto col = prog_dyn_TEST(j, sep);
                 if(col.empty()) continue; // si colonne vide, on l'ajoute pas
                 ajoute_colonne(col); 
                 a_ajoute_sep = true;  

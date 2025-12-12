@@ -20,6 +20,7 @@ struct modele {
     GRBModel* model; 
 
     Instance inst; 
+    vector<vector<double>> matrice_distances; 
 
     // contraintes 
     GRBConstr max_facility; 
@@ -36,19 +37,21 @@ struct modele {
 
     double theta();
 
+    void calcul_distances(); 
+
     vector<double> duales_des_clients(); 
 
     void optimize();
 
     double obj();
 
-    vector<int> pricing(int j, const Duales& donnees_duales, const vector<vector<double>>& distances);
+    vector<int> pricing(int j, const Duales& donnees_duales);
 
     void gen_col();
 
     vector<int> reconstruit_solution(int j, const vector<vector<pair<double,int>>>& tab); 
 
-    vector<int> prog_dyn_sac(int j, const Duales& donnees_duales, const vector<vector<double>>& distances); 
+    vector<int> prog_dyn_sac(int j, const Duales& donnees_duales); 
 
     vector<double> couts_reduits_j(int j, const Duales& donnees_duales); 
 
@@ -56,7 +59,7 @@ struct modele {
 
     vector<int> reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab); 
 
-    vector<int> prog_dyn_TEST(int j, const Duales& donnees_duales, const vector<vector<double>>& distances); 
+    vector<int> prog_dyn_TEST(int j, const Duales& donnees_duales); 
 
     void gen_col_DP_TEST(); 
 
