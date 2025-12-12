@@ -141,85 +141,6 @@ vector<int> modele::pricing(int j, const Duales& donnees_duales) {
     return colonne; 
 }
 
-// fonction qui reconstruit la solution trouvée par le programme dynamique 
-vector<int> modele::reconstruit_solution(int j, const vector<vector<pair<double,int>>>& tab) {
-
-    vector<int> solution; 
-    for(int i = 0; i < (int)tab.size(); ++i) {
-        solution.push_back(0); 
-    }
-    solution[0] = j; // on met la facility 
-
-    // Soit on vient de g(i-1, d) soit on vient de G(i-1, d-di). 
-    // suffit de vérifier que g(i-1,d) != g(i-1,d)
-    int pred;
-    int c_courant = tab[0].size()-1;  
- 
-    for(int i = (int)tab.size()-1; i > 0; --i) {
-
-        pred = tab[i][c_courant].second; 
-        if(tab[i][c_courant].first == tab[i-1][c_courant].first) { // alors on vient de G(i-1, c_courant)
-            continue; // i pas dans sol
-        }
-        else {
-            solution[i]++;
-            c_courant = pred;  
-        }
-    }
-
-    return solution;
-}
-
-// fonction qui calcule la valeur optimale du pricing par DP. il s'agit d'un sac a dos binaire 
-vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
-
-    // données du pb 
-    int taille_sac = inst.uf[j]; 
-    int nb_obj = inst.C; 
-    vector<int> poids = inst.dc; 
-    vector<double> profits(nb_obj);  
-
-    for(int i = 0; i < nb_obj; ++i) { // il faut calculer les profits; pour chaque objet, ils valent : pi_i - dist(i,j)
-        profits[i] = -matrice_distances[i][j] + donnees_duales.duales_des_clients[i]; 
-    }
-
-    vector<vector<pair<double,int>>> tableau(nb_obj+1, vector<pair<double,int>>(taille_sac+1)); // tableau prog dyn
-    for(int d = 0; d < taille_sac; ++d) tableau[0][d] = {0,0}; // remplissage état initiaux 
-    
-    // ----------------------- RESOLUTION PROG DYN ----------------------- 
-
-    for(int i = 1; i < nb_obj + 1; ++i) { 
-
-        int poids_i = poids[i-1]; 
-        double profit_i = profits[i-1]; 
-
-        for(int d = 0; d < taille_sac + 1; ++d) {
-
-            if(poids_i > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
-            else 
-            {
-                // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
-                if(tableau[i-1][d-poids_i].first + profit_i > tableau[i-1][d].first) {
-
-                    tableau[i][d].first = tableau[i-1][d-poids_i].first + profit_i; 
-                    tableau[i][d].second = d-poids_i;
-
-                }
-                else { // cas G(i,d) = G(i-1, d) en gros, pas prendre i dans le sac 
-                    tableau[i][d] = tableau[i-1][d]; 
-                }
-            }
-        }
-    }
-
-    vector<int> solution; 
-    if(-tableau[nb_obj][taille_sac].first - donnees_duales.theta < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
-        return reconstruit_solution(j, tableau); 
-    } 
-    
-    return {};  // sinon, pas de vecteur
-}
-
 // boucle pour la génération de colonne
 void modele::gen_col() {
 
@@ -246,33 +167,6 @@ void modele::gen_col() {
     cout << duration.count() << endl;
 }
 
-// fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
-void modele::gen_col_DP() {
-
-    auto start = std::chrono::high_resolution_clock::now();  
-    Duales donnees_duales; 
-
-    while(true) {   
-        bool a_ajouter = false;  
-        donnees_duales.duales_des_clients = duales_des_clients();
-        donnees_duales.theta = theta(); 
-        for(int j = 0; j < inst.F; ++j) {
-            auto col = prog_dyn_sac(j, donnees_duales); 
-            if(col.empty()) continue; // si colonne vide, on l'ajoute pas
-            ajoute_colonne(col); 
-            a_ajouter = true; 
-        }
-        
-        if(!a_ajouter) break; // si on a aajouté aucune col 
-        optimize(); 
-    }
-
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
-    cout << duration.count() << endl;
-
-}
-
 // destructeur modele 
 modele::~modele() {
     delete env; 
@@ -280,10 +174,10 @@ modele::~modele() {
 }
 
 
-/* ########### DEBUT PARTIE TEST D AMELIORATION PROG DYN ########### */
+/* ########### PARTIE PROGRAMMATION DYNAMIQUE ########### */
 
 // fonction qui reconstruit la solution trouvée par le programme dynamique 
-vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab) {
+vector<int> modele::reconstruit_solution(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab) {
 
     vector<int> solution(inst.C+1, 0); 
     solution[0] = j; // on met la facility 
@@ -309,7 +203,7 @@ vector<int> modele::reconstruit_solution_TEST(int j, const vector<int>& liaisons
 }
 
 
-vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales) {
+vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
 
     // données du pb 
     int taille_sac = inst.uf[j];  
@@ -357,7 +251,7 @@ vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales) {
 
     vector<int> solution; 
     if(-tableau[nb_obj][taille_sac].first - donnees_duales.theta < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
-        return reconstruit_solution_TEST(j, liaisons, tableau); 
+        return reconstruit_solution(j, liaisons, tableau); 
     } 
 
     return {};  // sinon, pas de vecteur
@@ -365,7 +259,7 @@ vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales) {
 }
 
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
-void modele::gen_col_DP_TEST() {
+void modele::gen_col_DP() {
 
     auto start = std::chrono::high_resolution_clock::now();  
     Duales donnees_duales; 
@@ -375,7 +269,7 @@ void modele::gen_col_DP_TEST() {
         donnees_duales.duales_des_clients = duales_des_clients();
         donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {
-            auto col = prog_dyn_TEST(j, donnees_duales); 
+            auto col = prog_dyn_sac(j, donnees_duales); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajouter = true; 
@@ -390,8 +284,6 @@ void modele::gen_col_DP_TEST() {
     cout << duration.count() << endl;
 
 }
-
-/* ########### FIN PARTIE TEST D AMELIORATION PROG DYN ########### */
 
 
 /* ########### IMPLE SEPARATION ########### */
@@ -439,7 +331,7 @@ void modele::gen_col_stabilization() {
         out.theta = theta();
         
         for(int j = 0; j < inst.F; ++j) { // résolution des j pricings 
-            auto col = prog_dyn_TEST(j, out); 
+            auto col = prog_dyn_sac(j, out); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
             a_ajoute = true; 
@@ -453,7 +345,7 @@ void modele::gen_col_stabilization() {
         
             bool a_ajoute_sep = false; 
             for(int j = 0; j < inst.F; ++j) { // on regarde si sep est réalisable 
-                auto col = prog_dyn_TEST(j, sep);
+                auto col = prog_dyn_sac(j, sep);
                 if(col.empty()) continue; // si colonne vide, on l'ajoute pas
                 ajoute_colonne(col); 
                 a_ajoute_sep = true;  
@@ -496,9 +388,6 @@ int main(int argc, char* argv[]) {
         m.gen_col(); 
     }  
     if(choix=='2') {
-        m.gen_col_DP_TEST(); 
-    }
-    if(choix=='3') {
         m.gen_col_stabilization(); 
     }
     

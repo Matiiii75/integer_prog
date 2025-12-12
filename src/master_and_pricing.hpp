@@ -31,6 +31,8 @@ struct modele {
 
     modele(const Instance& inst_, const vector<vector<int>>& cols);
 
+    /* ---------------- PARTIE UTILITAIRES ---------------- */
+
     double calcul_cout_colonne(const vector<int>& colonne);
 
     void ajoute_colonne(vector<int> colonne_du_pricing);
@@ -47,25 +49,19 @@ struct modele {
 
     vector<int> pricing(int j, const Duales& donnees_duales);
 
-    void gen_col();
+    /* ---------------- PARTIE PROGRAMMATION DYNAMIQUE ---------------- */
 
-    vector<int> reconstruit_solution(int j, const vector<vector<pair<double,int>>>& tab); 
+    vector<int> reconstruit_solution(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab); 
 
     vector<int> prog_dyn_sac(int j, const Duales& donnees_duales); 
 
-    vector<double> couts_reduits_j(int j, const Duales& donnees_duales); 
+    /* ---------------- PARTIE GENERATION COL ---------------- */
 
-    // DEBUT IMPLE TEST PROG DYN
-
-    vector<int> reconstruit_solution_TEST(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab); 
-
-    vector<int> prog_dyn_TEST(int j, const Duales& donnees_duales); 
-
-    void gen_col_DP_TEST(); 
-
-    // FIN IMPLE TEST PROG DYN
+    void gen_col();
 
     void gen_col_DP(); 
+
+    /* ---------------- PARTIE GENERATION STABILISATION ---------------- */
 
     void update_sep(Duales& sep, const Duales& in, const Duales& out, double alpha); 
 
