@@ -13,8 +13,7 @@ modele::modele(const Instance& inst_, const vector<vector<int>>& cols) : inst(in
     env->start(); 
     model = new GRBModel(*env); 
 
-    // DECLARATION DES CONTRAINTES
-    // contrainte pas plus de p entrepot
+    // pas plus de p entrepot
     max_facility = model->addConstr(0.0, GRB_LESS_EQUAL, inst.p);
     // contraintes client 
     tout_client_assigne.resize(inst.C);
@@ -22,9 +21,8 @@ modele::modele(const Instance& inst_, const vector<vector<int>>& cols) : inst(in
         tout_client_assigne[i] = model->addConstr(0.0, GRB_EQUAL, 1.0);
     }
 
-    if(cols.empty()) { // si on a pas généré de colonnes initiales -> BIG M
-        // on les ajoutes pr chaque contrainte 
-        for(int i = 0; i < inst.C; ++i) {
+    if(cols.empty()) {  // si on a pas généré de colonnes initiales -> BIG M 
+        for(int i = 0; i < inst.C; ++i) {   // on les ajoutes pr chaque contrainte
             GRBColumn col; 
             col.addTerm(1.0, tout_client_assigne[i]); 
             model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, col);  
@@ -61,8 +59,7 @@ void modele::ajoute_colonne(vector<int> colonne_du_pricing) {
     double distance_totale = calcul_cout_colonne(colonne_du_pricing); 
 
     GRBColumn col; 
-    // ajout a la contrainte sur le nb de facility
-    col.addTerm(1, max_facility); 
+    col.addTerm(1, max_facility);   // ajout a la contrainte sur le nb de facility
 
     // ajoute la variable a la contrainte sur l'affectation de chaque client 
     for(int i = 1; i < inst.C+1; ++i) {
@@ -74,10 +71,11 @@ void modele::ajoute_colonne(vector<int> colonne_du_pricing) {
     model->addVar(0.0, INFINITY, distance_totale, GRB_CONTINUOUS, col); 
 }
 
-// récupérer val duale theta associée a ctrt <= p
+// recup val duale theta
 double modele::theta() {
     return max_facility.get(GRB_DoubleAttr_Pi); 
 }
+
 
 void modele::calcul_distances() {
 
@@ -93,7 +91,6 @@ void modele::calcul_distances() {
 vector<double> modele::duales_des_clients() {
 
     vector<double> duales; 
-
     for(auto& contrainte : tout_client_assigne) {
         duales.push_back(contrainte.get(GRB_DoubleAttr_Pi)); 
     }
@@ -154,7 +151,7 @@ modele::~modele() {
 
 /* ---------------- PARTIE PROGRAMMATION DYNAMIQUE ---------------- */
 
-// fonction qui reconstruit la solution trouvée par le programme dynamique 
+ 
 vector<int> modele::reconstruit_solution(int j, const vector<int>& liaisons, const vector<vector<pair<double,int>>>& tab) {
 
     vector<int> solution(inst.C+1, 0); 
@@ -191,9 +188,9 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
     vector<int> liaisons; // liaisons est un vecteur qui permet de se souvenir des indices d'origine des clients (car je calle tout a gauche)
     for(int i = 0; i < inst.C; ++i) { // si cr < 0 pour client i, alors on va le considérer dans le sac à dos; 
         if(matrice_distances[i][j] - donnees_duales.duales_des_clients[i] < 0) {
-            liaisons.push_back(i); // on retiens l'index du client i 
+            liaisons.push_back(i); // on retient l'index du client i 
             profits.push_back(-matrice_distances[i][j] + donnees_duales.duales_des_clients[i]); // inversion signes car max du knapsack
-            poids.push_back(inst.dc[i]); // on retiens le poids de i 
+            poids.push_back(inst.dc[i]); // on retient le poids de i 
         }
     }
     
@@ -205,22 +202,22 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
     
     for(int i = 1; i < nb_obj + 1; ++i) { 
 
-        int poids_i = poids[i-1]; 
+        int poids_i = poids[i-1]; // + lisible 
         double profit_i = profits[i-1];
 
         for(int d = 0; d < taille_sac + 1; ++d) {
 
-            if(poids_i > d) tableau[i][d] = tableau[i-1][d];  // cas le poids de i excede la capacite 
+            if(poids_i > d) tableau[i][d] = tableau[i-1][d];  // di>d -> pas prendre i 
             else 
             {   
-                // cas G(i-1, d-di) > G(i-1, d) prendre i dans le sac 
+                // cas G(i-1, d-di) > G(i-1, d) -> prendre i
                 if(tableau[i-1][d-poids_i].first + profit_i > tableau[i-1][d].first) {
 
                     tableau[i][d].first = tableau[i-1][d-poids_i].first + profit_i; 
                     tableau[i][d].second = d-poids_i;
 
                 }
-                else { // cas G(i,d) = G(i-1, d) en gros, pas prendre i dans le sac 
+                else { // cas G(i,d) = G(i-1, d) -> pas prendre i
                     tableau[i][d] = tableau[i-1][d]; 
                 }
             }
@@ -239,10 +236,9 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
 /* ---------------- PARTIE GENERATION COL ---------------- */
 
 
-// boucle pour la génération de colonne
 void modele::gen_col() {
 
-    auto start = std::chrono::high_resolution_clock::now();   
+    lance_timer();    
     Duales donnees_duales; // permettra de stocker les duales; 
 
     while(true) {   
@@ -260,9 +256,7 @@ void modele::gen_col() {
         optimize(); 
     }
 
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
-    cout << duration.count() << endl;
+    stop_timer(); 
 }
 
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
@@ -373,6 +367,16 @@ void modele::gen_col_stabilization() {
 
 }
 
+
+void modele::lance_timer() {
+    start = chrono::steady_clock::now(); 
+}
+
+void modele::stop_timer() {
+    auto stop = chrono::steady_clock::now(); 
+    chrono::duration<double> duree = stop - start; 
+    return d.count(); 
+}
 
 int main(int argc, char* argv[]) {
 
