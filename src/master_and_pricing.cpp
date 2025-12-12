@@ -262,7 +262,7 @@ void modele::gen_col() {
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP() {
 
-    auto start = std::chrono::high_resolution_clock::now();  
+    lance_timer(); 
     Duales donnees_duales; 
     
     while(true) {   
@@ -280,10 +280,7 @@ void modele::gen_col_DP() {
         optimize(); 
     }
 
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
-    cout << duration.count() << endl;
-
+    stop_timer(); 
 }
 
 
@@ -315,7 +312,7 @@ TANT QUE : out n'est pas réalisable (ie. cas où les duales renvoyées par mast
 */
 void modele::gen_col_stabilization() {
 
-    auto start = std::chrono::high_resolution_clock::now();
+    lance_timer(); 
     Duales in; 
     in.duales_des_clients.resize(inst.C); 
     Duales sep; 
@@ -361,10 +358,7 @@ void modele::gen_col_stabilization() {
         optimize(); 
     }
 
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start); 
-    cout << duration.count() << endl;
-
+    stop_timer(); 
 }
 
 
@@ -375,7 +369,7 @@ void modele::lance_timer() {
 void modele::stop_timer() {
     auto stop = chrono::steady_clock::now(); 
     chrono::duration<double> duree = stop - start; 
-    return d.count(); 
+    cout << "temps : " << duree.count() << " secondes " << endl; 
 }
 
 int main(int argc, char* argv[]) {
