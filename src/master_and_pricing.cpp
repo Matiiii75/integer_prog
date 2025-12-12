@@ -5,6 +5,8 @@ using namespace std;
 modele::modele(const Instance& inst_, const vector<vector<int>>& cols) : inst(inst_) {
 
     taille_col = inst.C + inst.F; 
+    calcul_distances(); // calcul préalable des distances 
+
     // environnement 
     env = new GRBEnv(true); 
     env->set(GRB_IntParam_LogToConsole, 0); // désactive les logs
@@ -221,9 +223,7 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
 // boucle pour la génération de colonne
 void modele::gen_col() {
 
-    auto start = std::chrono::high_resolution_clock::now(); 
-
-    calcul_distances(): 
+    auto start = std::chrono::high_resolution_clock::now();   
     Duales donnees_duales; // permettra de stocker les duales; 
 
     while(true) {   
@@ -249,9 +249,7 @@ void modele::gen_col() {
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP() {
 
-    auto start = std::chrono::high_resolution_clock::now(); 
-
-    calcul_distances(); 
+    auto start = std::chrono::high_resolution_clock::now();  
     Duales donnees_duales; 
 
     while(true) {   
@@ -369,9 +367,7 @@ vector<int> modele::prog_dyn_TEST(int j, const Duales& donnees_duales) {
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP_TEST() {
 
-    auto start = std::chrono::high_resolution_clock::now(); 
-
-    calcul_distances(); 
+    auto start = std::chrono::high_resolution_clock::now();  
     Duales donnees_duales; 
     
     while(true) {   
@@ -428,8 +424,6 @@ TANT QUE : out n'est pas réalisable (ie. cas où les duales renvoyées par mast
 void modele::gen_col_stabilization() {
 
     auto start = std::chrono::high_resolution_clock::now();
-
-    calcul_distances(); 
     Duales in; 
     in.duales_des_clients.resize(inst.C); 
     Duales sep; 
