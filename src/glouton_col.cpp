@@ -54,7 +54,7 @@ vector<pair<int,int>> trie_p_plus_grands(int nb_a_conserver, const vector<int>& 
     return new_vec; 
 }
 
-vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int>> demandes_tries, vector<pair<int,int>> cap_tries) {
+vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int>> demandes_tries, vector<pair<int,int>> cap_tries, vector<bool>& clients_places) {
 
     cout << "entree create_colonne_set" << endl;
 
@@ -72,6 +72,7 @@ vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int
             if(cap_tries[j].first >= demandes_tries[i].first) { // si y'a la place pour assigner index_client à index_facility
                 ens_col[j][index_client] = 1; 
                 cap_tries[j].first -= demandes_tries[i].first; // on maj 
+                clients_places[index_client-1] = true; // on retient qu'on a placé le client 
                 break; // et on sort
             }
         }
@@ -80,15 +81,15 @@ vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int
     return ens_col; 
 }
 
-vector<vector<int>> get_first_col(const Instance& inst) {
+vector<vector<int>> get_first_col(const Instance& inst, vector<bool>& clients_places) {
 
     cout << "entree get_first_col" << endl;
 
     vector<pair<int,int>> u_tries = trie_p_plus_grands(inst.p, inst.uf); 
     vector<pair<int,int>> d_tries = trie_p_plus_grands(inst.C, inst.dc); 
-
+ 
     vector<vector<int>> first_col; 
-    first_col = create_colonne_set(inst.p, inst.C, d_tries, u_tries); 
+    first_col = create_colonne_set(inst.p, inst.C, d_tries, u_tries, clients_places); 
 
     return first_col; 
 }

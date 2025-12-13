@@ -2,7 +2,7 @@
 
 using namespace std; 
 
-modele::modele(const Instance& inst_, const vector<vector<int>>& cols) : inst(inst_) {
+modele::modele(const Instance& inst_, const vector<vector<int>>& cols, const vector<bool>& clients_places) : inst(inst_) {
 
     taille_col = inst.C + inst.F; 
     calcul_distances(); // calcul préalable des distances 
@@ -21,15 +21,15 @@ modele::modele(const Instance& inst_, const vector<vector<int>>& cols) : inst(in
         tout_client_assigne[i] = model->addConstr(0.0, GRB_EQUAL, 1.0);
     }
 
-    if(cols.empty()) {  // si on a pas généré de colonnes initiales -> BIG M 
-        for(int i = 0; i < inst.C; ++i) {   // on les ajoutes pr chaque contrainte
+    for(int i = 0; i < inst.C; ++i) { // pour chaque client non couvert par les colonnes initiales -> ajouter bigM
+        if(!clients_places[i]) {
             GRBColumn col; 
             col.addTerm(1.0, tout_client_assigne[i]); 
-            model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, col);  
+            model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, col);
+            cout <<"Initialisation Maitre : ajout bigM pour client " << i << endl;
         }
     }
-    else 
-    {   // si on en a généré, on les ajoute
+    if(!cols.empty()) { // ajouter les colonnes qu'on a pu générer. 
         for(auto& col : cols) ajoute_colonne(col); 
     }
 
@@ -199,7 +199,7 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
     for(int d = 0; d < taille_sac; ++d) tableau[0][d] = {0,0}; 
 
     // ----------------------- RESOLUTION PROG DYN ----------------------- 
-    
+
     for(int i = 1; i < nb_obj + 1; ++i) { 
 
         int poids_i = poids[i-1]; // + lisible 
@@ -380,9 +380,10 @@ int main(int argc, char* argv[]) {
     else cerr << "erreur ouverture fichier" << endl;
 
     // on génère des colonnes initiales : ca fonction grv bien et ça améliore le temps de facteur 3 !!!
-    vector<vector<int>> colonnes_initiales = get_first_col(inst); 
+    vector<bool> clients_places(inst.C, false); 
+    vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
 
-    modele m(inst, colonnes_initiales);
+    modele m(inst, colonnes_initiales, clients_places);
     char choix = argv[2][0];  
     if(choix=='1') {
         m.gen_col_DP();

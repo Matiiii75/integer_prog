@@ -32,7 +32,7 @@ struct modele {
     // colonnes 
     int taille_col; 
 
-    modele(const Instance& inst_, const vector<vector<int>>& cols);
+    modele(const Instance& inst_, const vector<vector<int>>& cols, const vector<bool>& clients_places);
 
     /* ---------------- PARTIE UTILITAIRES ---------------- */
 
