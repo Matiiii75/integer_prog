@@ -99,5 +99,6 @@ struct modele {
     // fonctions temps 
     void lance_timer(); 
     void stop_timer(); 
+    
 }; 
 
