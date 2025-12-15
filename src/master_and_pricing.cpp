@@ -226,6 +226,8 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
 
     vector<int> solution; 
     if(-tableau[nb_obj][taille_sac].first - donnees_duales.theta < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
+        // debug
+        // cout << "val opt pricing : " << -tableau[nb_obj][taille_sac].first - donnees_duales.theta << endl;
         return reconstruit_solution(j, liaisons, tableau); 
     } 
 
