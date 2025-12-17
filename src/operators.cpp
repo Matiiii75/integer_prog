@@ -227,8 +227,10 @@ int get_num_instance(const string& nom) {
 }
 
 
-// fonction d'écriture des données pour la gen col
-void ecrire_data(const string& path, char choix, double temps, double val) {
+// fonction d'écriture des données pour la gen col dans la forme suivante : 
+// numéro d'instance -> choix(0,1,2) pour pricing & stab -> temps -> valeur -> alpha
+// si on est pas dans le cadre de la stabilisation, le alpha vaudra -1
+void ecrire_data(const string& path, char choix, double temps, double val, double alpha) {
 
     ofstream fichier_ou_ecrire; 
     fichier_ou_ecrire.open("../solutions/solutions_gen_col.sol", ios::app); 
@@ -239,13 +241,14 @@ void ecrire_data(const string& path, char choix, double temps, double val) {
 
     int num_instance = get_num_instance(path); 
 
-    fichier_ou_ecrire << num_instance << " " << choix << " " << temps << " " << val << endl; 
+    fichier_ou_ecrire << num_instance << " " << choix << " " << temps << " " << val << " " << alpha << endl; 
     fichier_ou_ecrire.close(); 
 
 }
 
 
-// fonction d'écriture des données pour formulation compacte entière
+// fonction d'écriture des données pour formulation compacte entière de la forme suivante : 
+// num instance -> (1 si LP, 0 sinon MIP) -> temps -> valeur -> gap (que si relaxation = 0)
 void ecrire_data_compact(int num_instance, double temps, double val, double gap, bool relaxation) {
 
     ofstream fichier_ou_ecrire; 
@@ -255,7 +258,7 @@ void ecrire_data_compact(int num_instance, double temps, double val, double gap,
         cerr << "Erreur ouverture fichier" << endl;
     }
 
-    if(relaxation) fichier_ou_ecrire << num_instance << " " << relaxation << " " << temps << " " << val << " " << endl; // si c pas une relaxation -> pas de gap
+    if(relaxation) fichier_ou_ecrire << num_instance << " " << relaxation << " " << temps << " " << val << " " << endl; // si c une relaxation -> pas de gap
     else 
         fichier_ou_ecrire << num_instance << " " << relaxation << " " << temps << " " << val << " " << gap << endl;
 

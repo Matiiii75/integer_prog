@@ -135,12 +135,14 @@ void solve(const Instance& inst, const string& path, bool relaxation) {
         double temps = model.get(GRB_DoubleAttr_Runtime);  
 
         // écris la solution dans un fichier 
-        string fichier_ou_ecrire = "../solutions/solution" + to_string(num_instance) + ".sol"; 
+        string fichier_ou_ecrire = "../solutions/solution_compacte_uniform_" + to_string(num_instance) + ".sol"; 
         ecrire_data_compact(num_instance, temps, val_obj, gap, relaxation); 
 
-        ofstream ecrit("../solutions/solution.sol"); 
-        ecrit << sol; 
-        ecrit.close(); 
+        if(!relaxation) {
+            ofstream ecrit(fichier_ou_ecrire); 
+            ecrit << sol; 
+            ecrit.close();
+        }  
         
         cout << "val : " << val_obj << endl;
         if(!relaxation) cout << "gap : " << gap << endl;
@@ -156,25 +158,25 @@ void solve(const Instance& inst, const string& path, bool relaxation) {
 }
 
 
-int main(int argc, char* argv[]) {
+// int main(int argc, char* argv[]) {
 
-    Instance inst; 
-    string path = argv[1]; 
-    char choix = argv[2][0]; 
+//     Instance inst; 
+//     string path = argv[1]; 
+//     char choix = argv[2][0]; 
 
-    bool relaxation; 
-    if(choix == '0') relaxation = false; 
-    else if(choix == '1') relaxation = true; 
-    else cerr << "choix incorrect. Le 2e argument de main doit etre : 1->avc relaxation, 0->sans relaxation" << endl;
+//     bool relaxation; 
+//     if(choix == '0') relaxation = false; 
+//     else if(choix == '1') relaxation = true; 
+//     else cerr << "choix incorrect. Le 2e argument de main doit etre : 1->avc relaxation, 0->sans relaxation" << endl;
 
-    ifstream file(path); 
-    if(file.is_open()) {
-        file >> inst; 
-    }
-    else cout << "erreur ouverture fichier" << endl;
+//     ifstream file(path); 
+//     if(file.is_open()) {
+//         file >> inst; 
+//     }
+//     else cout << "erreur ouverture fichier" << endl;
 
-    solve(inst, path, relaxation); // true si on fait la relaxation linéaire
+//     solve(inst, path, relaxation); // true si on fait la relaxation linéaire
 
-    return 0; 
-}
+//     return 0; 
+// }
 

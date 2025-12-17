@@ -308,14 +308,12 @@ TANT QUE : out n'est pas réalisable (ie. cas où les duales renvoyées par mast
         _ajoute la colonne
         _met a jour out (ie. out <-- duales obtenues par resolution master apres ajout)
 */
-void modele::gen_col_stabilization() {
+void modele::gen_col_stabilization(int alpha) {
 
     Duales in; 
     in.duales_des_clients.resize(inst.C); 
     Duales sep; 
     sep.duales_des_clients.resize(inst.C); 
-
-    double alpha = 0.9; // alpha (que je réglerais moi meme)
 
     Duales out; 
     while(true) { // tant que out n'est pas réalisable 
@@ -369,39 +367,45 @@ double modele::stop_timer() {
 }
 
 
-// int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
-//     Instance inst; 
-//     string path = argv[1]; 
-//     ifstream file(path); 
-//     if(file.is_open()) file >> inst; 
-//     else cerr << "erreur ouverture fichier" << endl;
+    Instance inst; 
+    string path = argv[1]; 
+    ifstream file(path); 
+    if(file.is_open()) file >> inst; 
+    else cerr << "erreur ouverture fichier" << endl;
 
-//     // on génère des colonnes initiales : ca fonction grv bien et ça améliore le temps de facteur 3 !!!
-//     vector<bool> clients_places(inst.C, false); 
-//     vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
+    // on génère des colonnes initiales : ca fonction grv bien et ça améliore le temps de facteur 3 !!!
+    vector<bool> clients_places(inst.C, false); 
+    vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
 
-//     modele m(inst, colonnes_initiales, clients_places);
-//     char choix = argv[2][0];  
-//     m.lance_timer(); 
+    modele m(inst, colonnes_initiales, clients_places);
+    char choix = argv[2][0];   
+    double alpha = 0.8; // par défaut, vaut -1 
+    m.lance_timer(); 
 
-//     if(choix=='1') {
-//         m.gen_col_DP();
-//     } 
-//     if(choix=='0') {
-//         m.gen_col(); 
-//     }  
-//     if(choix=='2') {
-//         m.gen_col_stabilization(); 
-//     }
+    if(choix=='1') {
+        m.gen_col_DP();
+    } 
+    if(choix=='0') {
+        m.gen_col(); 
+    }  
+    if(choix=='2') {
+        // cout << "saisir l'alpha : " << endl;
+        // cin >> alpha; 
+        m.gen_col_stabilization(alpha); 
+    }
 
-//     double temps = m.stop_timer(); 
-//     cout << "relaxation LP maitre : " << m.obj() << endl;
-//     cout << "temps : " << temps << endl;
-//     // cout << "temps gurobi : " << timeOptim / (double)CLOCKS_PER_SEC << endl; 
+    double temps = m.stop_timer(); 
+    cout << "relaxation LP maitre : " << m.obj() << endl;
+    cout << "temps : " << temps << endl;
+    // cout << "temps gurobi : " << timeOptim / (double)CLOCKS_PER_SEC << endl; 
     
-//     // écriture dans un fichier : 
-//     ecrire_data(path, choix, temps, m.obj()); 
+    // écriture dans un fichier : 
+    char choix_ecrire = argv[3][0]; // pr savoir si on ecrit ou pas
+    if(choix_ecrire == '1') ecrire_data(path, choix, temps, m.obj(), alpha);
+    else if(choix_ecrire == '0') cout << "pas d'écritures" << endl;
+    else cerr << "dans main : choisir un argument pour l'ecriture dans un fichier " << endl;
 
-//     return 0; 
-// }
+    return 0; 
+}
