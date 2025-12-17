@@ -377,11 +377,12 @@ int main(int argc, char* argv[]) {
 
     // on génère des colonnes initiales : ca fonction grv bien et ça améliore le temps de facteur 3 !!!
     vector<bool> clients_places(inst.C, false); 
-    vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
+    vector<vector<int>> colonnes_initiales = {}; 
+    // vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
 
     modele m(inst, colonnes_initiales, clients_places);
     char choix = argv[2][0];   
-    double alpha = 0.8; // par défaut, vaut -1 
+    double alpha = -1; // par défaut, vaut -1 
     m.lance_timer(); 
 
     if(choix=='1') {
@@ -392,7 +393,7 @@ int main(int argc, char* argv[]) {
     }  
     if(choix=='2') {
         // cout << "saisir l'alpha : " << endl;
-        // cin >> alpha; 
+        cin >> alpha; 
         m.gen_col_stabilization(alpha); 
     }
 
