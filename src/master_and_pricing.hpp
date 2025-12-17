@@ -92,7 +92,7 @@ struct modele {
      * Lance une génération de colonnes avec stabilisation in-out et utilisation 
      * de programmation dynamique pour résoudre pricing
      */
-    void gen_col_stabilization(int alpha); 
+    void gen_col_stabilization(double alpha); 
 
     ~modele();
 

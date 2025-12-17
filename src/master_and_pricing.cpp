@@ -308,7 +308,7 @@ TANT QUE : out n'est pas réalisable (ie. cas où les duales renvoyées par mast
         _ajoute la colonne
         _met a jour out (ie. out <-- duales obtenues par resolution master apres ajout)
 */
-void modele::gen_col_stabilization(int alpha) {
+void modele::gen_col_stabilization(double alpha) {
 
     Duales in; 
     in.duales_des_clients.resize(inst.C); 
