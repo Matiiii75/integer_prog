@@ -5,12 +5,12 @@
 using namespace std; 
 
 // Q7 : implémentation du modèle de Q6. 
-
-void solve(const Instance& inst) {
+// relaxation = true si on fait la relaxation 
+void solve(const Instance& inst, const string& path, bool relaxation) {
 
     GRBEnv env = GRBEnv(false); // desactive ecritures
-    env.start(); 
-    env.set(GRB_IntParam_OutputFlag, 1); 
+    env.set(GRB_IntParam_OutputFlag, 0);
+    env.start();  
     GRBModel model = GRBModel(env); // creation modèle
 
     // déclaration des variables
@@ -23,7 +23,8 @@ void solve(const Instance& inst) {
 
             stringstream ss; 
             ss << "x" << i << "," << j; 
-            x[i][j] = model.addVar(0.0, 1.0,0.0, GRB_BINARY, ss.str()); 
+            if(relaxation) x[i][j] = model.addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, ss.str());
+            else x[i][j] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, ss.str()); 
 
         }
     }
@@ -36,7 +37,8 @@ void solve(const Instance& inst) {
 
         stringstream ss2;
         ss2 << "y" << j; 
-        y[j] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, ss2.str()); 
+        if(relaxation) y[j] = model.addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, ss2.str());
+        else y[j] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, ss2.str()); 
 
     }
 
@@ -99,16 +101,17 @@ void solve(const Instance& inst) {
 
     if(status == GRB_OPTIMAL || (status == GRB_TIME_LIMIT && model.get(GRB_IntAttr_SolCount)>0))
     {   
-        cout << "solution trouvee en " << model.get(GRB_DoubleAttr_Runtime) << " seconds" << endl;
-        cout << "valeur objective : " << model.get(GRB_DoubleAttr_ObjVal) << endl; 
-        for(int i = 0; i < inst.C; ++i) {
-            for(int j = 0; j < inst.F; ++j) {
-                cout << "x" << i << "," << j << " : " << x[i][j].get(GRB_DoubleAttr_X) << endl;
-            }
-        }
+        // cout << "solution trouvee en " << model.get(GRB_DoubleAttr_Runtime) << " seconds" << endl;
+        // cout << "valeur objective : " << model.get(GRB_DoubleAttr_ObjVal) << endl; 
+        
+        // for(int i = 0; i < inst.C; ++i) {
+        //     for(int j = 0; j < inst.F; ++j) {
+        //         cout << "x" << i << "," << j << " : " << x[i][j].get(GRB_DoubleAttr_X) << endl;
+        //     }
+        // }
 
         // récupérage de la solution : 
-
+        
         Solution sol(inst.C); 
         for(int i = 0; i < inst.C; ++i) {
             for(int j = 0; j < inst.F; ++j) {
@@ -117,19 +120,31 @@ void solve(const Instance& inst) {
                 }
             }
         }
-        cout << sol; 
-
+        // cout << sol; 
+        
         // verif sol 
 
         // double val;
         // val = inst.checker(sol); décommenter pour checker 
         
+        int num_instance = get_num_instance(path);  
+        double val_obj = model.get(GRB_DoubleAttr_ObjVal); 
+        double gap; 
+        if(!relaxation) gap = model.get(GRB_DoubleAttr_MIPGap); // si c'est pas une relaxation -> on peut chercher le gap
+        else gap = -1; // je lui donne n'importe quoi tfason il écrira pas
+        double temps = model.get(GRB_DoubleAttr_Runtime);  
+
         // écris la solution dans un fichier 
+        string fichier_ou_ecrire = "../solutions/solution" + to_string(num_instance) + ".sol"; 
+        ecrire_data_compact(num_instance, temps, val_obj, gap, relaxation); 
 
         ofstream ecrit("../solutions/solution.sol"); 
         ecrit << sol; 
         ecrit.close(); 
         
+        cout << "val : " << val_obj << endl;
+        if(!relaxation) cout << "gap : " << gap << endl;
+        cout << "temps : " << temps << endl;
 
         inst.dessine_sol(sol);  // dessine l'instance en svg dans le dossier dessins
 
@@ -141,17 +156,25 @@ void solve(const Instance& inst) {
 }
 
 
-// int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
-//     Instance inst; 
-//     ifstream file(argv[1]); 
-//     if(file.is_open()) {
-//         file >> inst; 
-//     }
-//     else cout << "erreur ouverture fichier" << endl;
+    Instance inst; 
+    string path = argv[1]; 
+    char choix = argv[2][0]; 
 
-//     solve(inst); 
+    bool relaxation; 
+    if(choix == '0') relaxation = false; 
+    else if(choix == '1') relaxation = true; 
+    else cerr << "choix incorrect. Le 2e argument de main doit etre : 1->avc relaxation, 0->sans relaxation" << endl;
 
-//     return 0; 
-// }
+    ifstream file(path); 
+    if(file.is_open()) {
+        file >> inst; 
+    }
+    else cout << "erreur ouverture fichier" << endl;
+
+    solve(inst, path, relaxation); // true si on fait la relaxation linéaire
+
+    return 0; 
+}
 

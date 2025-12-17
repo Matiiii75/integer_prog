@@ -26,7 +26,7 @@ modele::modele(const Instance& inst_, const vector<vector<int>>& cols, const vec
             GRBColumn col; 
             col.addTerm(1.0, tout_client_assigne[i]); 
             model->addVar(0.0, INFINITY, 1e9, GRB_CONTINUOUS, col);
-            cout <<"Initialisation Maitre : ajout bigM pour client " << i << endl;
+            // cout <<"Initialisation Maitre : ajout bigM pour client " << i << endl;
         }
     }
     if(!cols.empty()) { // ajouter les colonnes qu'on a pu générer. 
@@ -239,8 +239,7 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
 
 
 void modele::gen_col() {
-
-    lance_timer();    
+   
     Duales donnees_duales; // permettra de stocker les duales; 
 
     while(true) {   
@@ -257,14 +256,12 @@ void modele::gen_col() {
         if(!a_ajoute) break; 
         optimize(); 
     }
-
-    stop_timer(); 
+ 
 }
 
 // fonction qui genere des colonnes en utilisant l'algorithme DP pour résoudre pricing 
 void modele::gen_col_DP() {
-
-    lance_timer(); 
+ 
     Duales donnees_duales; 
     
     while(true) {   
@@ -281,8 +278,7 @@ void modele::gen_col_DP() {
         if(!a_ajouter) break; // si on a aajouté aucune col 
         optimize(); 
     }
-
-    stop_timer(); 
+ 
 }
 
 
@@ -314,7 +310,6 @@ TANT QUE : out n'est pas réalisable (ie. cas où les duales renvoyées par mast
 */
 void modele::gen_col_stabilization() {
 
-    lance_timer(); 
     Duales in; 
     in.duales_des_clients.resize(inst.C); 
     Duales sep; 
@@ -360,7 +355,6 @@ void modele::gen_col_stabilization() {
         optimize(); 
     }
 
-    stop_timer(); 
 }
 
 
@@ -368,37 +362,46 @@ void modele::lance_timer() {
     start = chrono::steady_clock::now(); 
 }
 
-void modele::stop_timer() {
+double modele::stop_timer() {
     auto stop = chrono::steady_clock::now(); 
     chrono::duration<double> duree = stop - start; 
-    cout << "temps : " << duree.count() << " secondes " << endl; 
+    return duree.count();  
 }
 
-int main(int argc, char* argv[]) {
 
-    Instance inst; 
-    ifstream file(argv[1]); 
-    if(file.is_open()) file >> inst; 
-    else cerr << "erreur ouverture fichier" << endl;
+// int main(int argc, char* argv[]) {
 
-    // on génère des colonnes initiales : ca fonction grv bien et ça améliore le temps de facteur 3 !!!
-    vector<bool> clients_places(inst.C, false); 
-    vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
+//     Instance inst; 
+//     string path = argv[1]; 
+//     ifstream file(path); 
+//     if(file.is_open()) file >> inst; 
+//     else cerr << "erreur ouverture fichier" << endl;
 
-    modele m(inst, colonnes_initiales, clients_places);
-    char choix = argv[2][0];  
-    if(choix=='1') {
-        m.gen_col_DP();
-    } 
-    if(choix=='0') {
-        m.gen_col(); 
-    }  
-    if(choix=='2') {
-        m.gen_col_stabilization(); 
-    }
+//     // on génère des colonnes initiales : ca fonction grv bien et ça améliore le temps de facteur 3 !!!
+//     vector<bool> clients_places(inst.C, false); 
+//     vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
+
+//     modele m(inst, colonnes_initiales, clients_places);
+//     char choix = argv[2][0];  
+//     m.lance_timer(); 
+
+//     if(choix=='1') {
+//         m.gen_col_DP();
+//     } 
+//     if(choix=='0') {
+//         m.gen_col(); 
+//     }  
+//     if(choix=='2') {
+//         m.gen_col_stabilization(); 
+//     }
+
+//     double temps = m.stop_timer(); 
+//     cout << "relaxation LP maitre : " << m.obj() << endl;
+//     cout << "temps : " << temps << endl;
+//     // cout << "temps gurobi : " << timeOptim / (double)CLOCKS_PER_SEC << endl; 
     
-    cout << "relaxation LP maitre : " << m.obj() << endl;
-    cout << "temps gurobi : " << timeOptim / (double)CLOCKS_PER_SEC << endl; 
+//     // écriture dans un fichier : 
+//     ecrire_data(path, choix, temps, m.obj()); 
 
-    return 0; 
-}
+//     return 0; 
+// }

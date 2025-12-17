@@ -175,6 +175,7 @@ CMakeFiles/projet_ip.dir/src/modele_compact.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
  /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h \
  /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
- /usr/include/c++/12/sstream /usr/include/c++/12/bits/sstream.tcc \
+ /usr/include/c++/12/optional /usr/include/c++/12/sstream \
+ /usr/include/c++/12/bits/sstream.tcc \
  /opt/local/stow/gurobi1203/linux64/include/gurobi_c++.h \
  /opt/local/stow/gurobi1203/linux64/include/gurobi_c.h

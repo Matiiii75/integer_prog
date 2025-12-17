@@ -12,7 +12,7 @@ using namespace std;
 // il suffit de set nb_a_conserver à inst.C
 vector<pair<int,int>> trie_p_plus_grands(int nb_a_conserver, const vector<int>& vec_a_trier) {
     
-    cout << "trie_p_plus_grands" << endl;
+    // cout << "trie_p_plus_grands" << endl;
 
     vector<int> copie = vec_a_trier; 
     vector<int> indexs; 
@@ -56,7 +56,7 @@ vector<pair<int,int>> trie_p_plus_grands(int nb_a_conserver, const vector<int>& 
 
 vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int>> demandes_tries, vector<pair<int,int>> cap_tries, vector<bool>& clients_places) {
 
-    cout << "entree create_colonne_set" << endl;
+    // cout << "entree create_colonne_set" << endl;
 
     vector<vector<int>> ens_col; 
     for(int j = 0; j < p; ++j) {
@@ -83,7 +83,7 @@ vector<vector<int>> create_colonne_set(int p, int nb_client, vector<pair<int,int
 
 vector<vector<int>> get_first_col(const Instance& inst, vector<bool>& clients_places) {
 
-    cout << "entree get_first_col" << endl;
+    // cout << "entree get_first_col" << endl;
 
     vector<pair<int,int>> u_tries = trie_p_plus_grands(inst.p, inst.uf); 
     vector<pair<int,int>> d_tries = trie_p_plus_grands(inst.C, inst.dc); 

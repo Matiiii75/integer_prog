@@ -96,6 +96,7 @@ CMakeFiles/projet_ip.dir/src/glouton_col.cpp.o
  /usr/include/c++/12/istream
  /usr/include/c++/12/limits
  /usr/include/c++/12/new
+ /usr/include/c++/12/optional
  /usr/include/c++/12/ostream
  /usr/include/c++/12/stdexcept
  /usr/include/c++/12/streambuf
@@ -321,6 +322,7 @@ CMakeFiles/projet_ip.dir/src/master_and_pricing.cpp.o
  /usr/include/c++/12/istream
  /usr/include/c++/12/limits
  /usr/include/c++/12/new
+ /usr/include/c++/12/optional
  /usr/include/c++/12/ostream
  /usr/include/c++/12/ratio
  /usr/include/c++/12/sstream
@@ -542,6 +544,7 @@ CMakeFiles/projet_ip.dir/src/modele_compact.cpp.o
  /usr/include/c++/12/istream
  /usr/include/c++/12/limits
  /usr/include/c++/12/new
+ /usr/include/c++/12/optional
  /usr/include/c++/12/ostream
  /usr/include/c++/12/sstream
  /usr/include/c++/12/stdexcept
@@ -759,6 +762,7 @@ CMakeFiles/projet_ip.dir/src/operators.cpp.o
  /usr/include/c++/12/istream
  /usr/include/c++/12/limits
  /usr/include/c++/12/new
+ /usr/include/c++/12/optional
  /usr/include/c++/12/ostream
  /usr/include/c++/12/stdexcept
  /usr/include/c++/12/streambuf

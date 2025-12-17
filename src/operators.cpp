@@ -202,3 +202,63 @@ double dist(const Instance &inst, int i, int j) {
 
     return sqrt(x*x + y*y);
 } 
+
+
+// fonction qui permet d'isoler le numéro de l'instance "uniform_{num}.inst"
+int get_num_instance(const string& nom) {
+    
+    size_t pos = nom.find("uniform_"); 
+    if(pos == string::npos) {
+        cerr << "pb dans get_num_instance, impossible de trouver le numéro pour : " << nom << endl;
+        return -1; 
+    }
+
+    pos += 8; // longueur de uniform_
+    size_t endpos = pos; 
+
+    while(endpos < nom.length() && isdigit(nom[endpos])) { // tant que le char a la position courante est un numéro : avancer
+        endpos ++ ; 
+    }
+    if(endpos > pos) {
+        return stoi(nom.substr(pos, endpos - pos)); 
+    }
+
+    return -1; 
+}
+
+
+// fonction d'écriture des données pour la gen col
+void ecrire_data(const string& path, char choix, double temps, double val) {
+
+    ofstream fichier_ou_ecrire; 
+    fichier_ou_ecrire.open("../solutions/solutions_gen_col.sol", ios::app); 
+    
+    if(!fichier_ou_ecrire.is_open()) {
+        cerr << "Erreur ouverture fichier" << endl;
+    }
+
+    int num_instance = get_num_instance(path); 
+
+    fichier_ou_ecrire << num_instance << " " << choix << " " << temps << " " << val << endl; 
+    fichier_ou_ecrire.close(); 
+
+}
+
+
+// fonction d'écriture des données pour formulation compacte entière
+void ecrire_data_compact(int num_instance, double temps, double val, double gap, bool relaxation) {
+
+    ofstream fichier_ou_ecrire; 
+    fichier_ou_ecrire.open("../solutions/solutions_compact.sol", ios::app);
+
+    if(!fichier_ou_ecrire.is_open()) {
+        cerr << "Erreur ouverture fichier" << endl;
+    }
+
+    if(relaxation) fichier_ou_ecrire << num_instance << " " << relaxation << " " << temps << " " << val << " " << endl; // si c pas une relaxation -> pas de gap
+    else 
+        fichier_ou_ecrire << num_instance << " " << relaxation << " " << temps << " " << val << " " << gap << endl;
+
+    fichier_ou_ecrire.close(); 
+
+}

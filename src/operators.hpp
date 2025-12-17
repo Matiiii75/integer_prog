@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <limits>
 #include <cmath>
+#include <string>
+#include <optional>
 
 using namespace std; 
 
@@ -39,4 +41,10 @@ ostream& operator<<(ostream& out, const Solution& sol);
 istream& operator>>(istream& in, Solution& sol);
 
 double dist(const Instance &inst, int i, int j); 
+
+int get_num_instance(const string& nom); 
+
+void ecrire_data(const string& path, char choix, double temps, double val); 
+
+void ecrire_data_compact(int num_instance, double temps, double val, double gap, bool relaxation); 
 
