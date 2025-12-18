@@ -99,6 +99,10 @@ struct modele {
     // fonctions temps 
     void lance_timer(); 
     double stop_timer(); 
+
+
+    // fonction qui résoud master en variables entieres
+    void solve_master_integer(); 
     
 }; 
 

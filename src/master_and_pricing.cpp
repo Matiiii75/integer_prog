@@ -367,6 +367,29 @@ double modele::stop_timer() {
 }
 
 
+// fonction pour résoudre le master en MIP
+// fonction que pour les mini instances donc je la laisse comme ça...
+void modele::solve_master_integer() {
+    
+    int nb_vars = model->get(GRB_IntAttr_NumVars); // récupérer le nb de var dans model
+    GRBVar* all_Vars = model->getVars(); 
+
+    for(int i = 0; i < nb_vars; ++i) { // je modifie tous les types
+        all_Vars[i].set(GRB_CharAttr_VType, GRB_BINARY); 
+    }
+
+    model->optimize(); // lancer l'optimisation
+    if(model->get(GRB_IntAttr_Status) == GRB_OPTIMAL) {
+        cout << "obj entier: " << model->get(GRB_DoubleAttr_ObjVal) << endl; 
+    } 
+    else {
+        cout << "pas de solution entiere trouvee" << endl;
+    }
+
+    delete[] all_Vars; 
+
+}
+
 int main(int argc, char* argv[]) {
 
     Instance inst; 
@@ -377,8 +400,8 @@ int main(int argc, char* argv[]) {
 
     // on génère des colonnes initiales : ca fonction grv bien et ça améliore le temps de facteur 3 !!!
     vector<bool> clients_places(inst.C, false); 
-    vector<vector<int>> colonnes_initiales = {}; 
-    // vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
+    // vector<vector<int>> colonnes_initiales = {}; // a decommenter si on veut faire que les big m
+    vector<vector<int>> colonnes_initiales = get_first_col(inst, clients_places); 
 
     modele m(inst, colonnes_initiales, clients_places);
     char choix = argv[2][0];   
