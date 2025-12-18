@@ -415,7 +415,7 @@ int main(int argc, char* argv[]) {
         m.gen_col(); 
     }  
     if(choix=='2') {
-        // cout << "saisir l'alpha : " << endl;
+        cout << "saisir l'alpha : " << endl;
         cin >> alpha; 
         m.gen_col_stabilization(alpha); 
     }
