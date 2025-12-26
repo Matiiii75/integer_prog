@@ -21,6 +21,12 @@ modele::modele(const Instance& inst_, const vector<vector<int>>& cols, const vec
         tout_client_assigne[i] = model->addConstr(0.0, GRB_EQUAL, 1.0);
     }
 
+    // ajout des contraintes 1 facility au +
+    une_facility_au_plus.resize(inst.F); 
+    for(int j = 0; j < inst.C; ++j) {
+        une_facility_au_plus[j] = model->addConstr(0.0, GRB_LESS_EQUAL, 1.0); 
+    }
+
     for(int i = 0; i < inst.C; ++i) { // pour chaque client non couvert par les colonnes initiales -> ajouter bigM
         if(!clients_places[i]) {
             GRBColumn col; 
@@ -57,9 +63,13 @@ double modele::calcul_cout_colonne(const vector<int>& colonne) {
 void modele::ajoute_colonne(vector<int> colonne_du_pricing) {
 
     double distance_totale = calcul_cout_colonne(colonne_du_pricing); 
+    int j_courant = colonne_du_pricing[0]; 
 
     GRBColumn col; 
     col.addTerm(1, max_facility);   // ajout a la contrainte sur le nb de facility
+
+    // contrainte chaque entrepot pas plus d'une fois
+    col.addTerm(1, une_facility_au_plus[j_courant]); 
 
     // ajoute la variable a la contrainte sur l'affectation de chaque client 
     for(int i = 1; i < inst.C+1; ++i) {
@@ -98,6 +108,12 @@ vector<double> modele::duales_des_clients() {
     return duales; 
 }
 
+// permet de récupérer la valeur duale associé à la contrainte 
+// " pas plus d'une fois l'entrepot j "
+double modele::duale_au_plus_un_entrepot(int j) {
+    return une_facility_au_plus[j].get(GRB_DoubleAttr_Pi); 
+}
+
 long long timeOptim = 0;
 
 void modele::optimize() {
@@ -130,7 +146,7 @@ vector<int> modele::pricing(int j, const Duales& donnees_duales) {
     double pricing_obj = pricing_model.get(GRB_DoubleAttr_ObjVal); 
 
     // si l'obj de pricing >= 0, on renvoie vecteur vide; Permettra de détecter que ça a convergé 
-    if(pricing_obj - donnees_duales.theta >= -1e-6) return {}; 
+    if(pricing_obj - donnees_duales.theta - donnees_duales.au_plus_une_fois_pour_entrepot_j >= -1e-6) return {}; 
 
     vector<int> colonne; // on créer la colonne 
     colonne.push_back(j); 
@@ -225,7 +241,7 @@ vector<int> modele::prog_dyn_sac(int j, const Duales& donnees_duales) {
     }
 
     vector<int> solution; 
-    if(-tableau[nb_obj][taille_sac].first - donnees_duales.theta < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
+    if(-tableau[nb_obj][taille_sac].first - donnees_duales.theta - donnees_duales.au_plus_une_fois_pour_entrepot_j < -1e-6) { // si l'objectif < 0 (a epsilon pret) renvoyer la solution reconstruite
         // debug
         // cout << "val opt pricing : " << -tableau[nb_obj][taille_sac].first - donnees_duales.theta << endl;
         return reconstruit_solution(j, liaisons, tableau); 
@@ -247,6 +263,8 @@ void modele::gen_col() {
         donnees_duales.duales_des_clients = duales_des_clients();
         donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {  
+            // récupérer la duale pour l'entrepot j
+            donnees_duales.au_plus_une_fois_pour_entrepot_j = duale_au_plus_un_entrepot(j); 
             auto col = pricing(j, donnees_duales); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas 
             ajoute_colonne(col); // on l'ajoute
@@ -269,6 +287,7 @@ void modele::gen_col_DP() {
         donnees_duales.duales_des_clients = duales_des_clients();
         donnees_duales.theta = theta(); 
         for(int j = 0; j < inst.F; ++j) {
+            donnees_duales.au_plus_une_fois_pour_entrepot_j = duale_au_plus_un_entrepot(j); 
             auto col = prog_dyn_sac(j, donnees_duales); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 
@@ -323,6 +342,7 @@ void modele::gen_col_stabilization(double alpha) {
         out.theta = theta();
         
         for(int j = 0; j < inst.F; ++j) { // résolution des j pricings 
+            out.au_plus_une_fois_pour_entrepot_j = duale_au_plus_un_entrepot(j); 
             auto col = prog_dyn_sac(j, out); 
             if(col.empty()) continue; // si colonne vide, on l'ajoute pas
             ajoute_colonne(col); 

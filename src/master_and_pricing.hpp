@@ -12,6 +12,7 @@ using namespace std;
 struct Duales {
     vector<double> duales_des_clients; 
     double theta; 
+    double au_plus_une_fois_pour_entrepot_j; 
 }; 
 
 struct modele {
@@ -25,6 +26,7 @@ struct modele {
     // contraintes 
     GRBConstr max_facility; 
     vector<GRBConstr> tout_client_assigne; 
+    vector<GRBConstr> une_facility_au_plus;
 
     // timer 
     chrono::steady_clock::time_point start; 
@@ -45,6 +47,8 @@ struct modele {
     void calcul_distances(); 
 
     vector<double> duales_des_clients(); 
+
+    double duale_au_plus_un_entrepot(int j); 
 
     void optimize();
 

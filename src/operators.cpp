@@ -233,7 +233,7 @@ int get_num_instance(const string& nom) {
 void ecrire_data(const string& path, char choix, double temps, double val, double alpha) {
 
     ofstream fichier_ou_ecrire; 
-    fichier_ou_ecrire.open("../solutions/solutions_gen_col2.sol", ios::app); 
+    fichier_ou_ecrire.open("../solutions/solutions_gen_col.sol", ios::app); 
     
     if(!fichier_ou_ecrire.is_open()) {
         cerr << "Erreur ouverture fichier" << endl;
